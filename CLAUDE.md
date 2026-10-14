@@ -268,8 +268,10 @@ personnel affiché).
   `<script>`. Duquesne : derrière Incapsula, en-têtes de navigation.
 - **Sonde réelle du 14/10/2026** (faux comptes) : PG&E, ConEd et ComEd refusent proprement.
   AEP Ohio est **lent** (en-têtes en ~7 s, page de 215 Ko en ~22 s) : `src/http.js` a deux délais,
-  60 s pour les en-têtes puis 90 s pour le corps, et dit lequel a expiré. PSE a fini sur
-  `/servererrorpage` (HTTP 500) : après les identifiants ou au sélecteur de compte, c'est lu comme un
+  60 s pour les en-têtes puis 90 s pour le corps, et dit lequel a expiré. PSE renvoie
+  `/servererrorpage` (HTTP 500) à toute requête **sans `Accept-Language`** (cause isolée par
+  l'orchestrateur) : `src/http.js` envoie par défaut `Accept-Language` et un `Accept` HTML, comme un
+  navigateur. Une page d'erreur après les identifiants ou au sélecteur de compte reste lue comme un
   refus ; PSE reste « expérimental » dans les docs tant qu'un vrai compte ne l'a pas validé.
   `node scripts/probe.mjs --trace` liste chaque requête (sans query, cookies et jetons masqués)
   pour situer l'étape qui échoue.

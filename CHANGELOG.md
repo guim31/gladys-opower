@@ -30,8 +30,9 @@ the notes of the version's GitHub Release.
 - The "Utility energy summary" dashboard widget, the "New day of usage
   available" and "Utility sign-in needs you" scene triggers, and the "Read a
   meter summary" scene action.
-- PSE is marked experimental: the live check of a made-up account ended on
-  PSE's error page, read as refused credentials.
+- PSE is marked experimental until a real account checks it. Requests carry
+  the Accept-Language header of a browser, without which PSE answers its
+  error page.
 - Texts in English, French, German and Spanish; documentation in the four
   languages.
 

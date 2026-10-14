@@ -209,3 +209,25 @@ test('the trace lists every request with its answer, the session headers masked'
   assert.equal(entries[1].headers.Cookie, '(set)');
   assert.doesNotMatch(JSON.stringify(entries), /hunter2|secret-value|abc/);
 });
+
+test('every request carries the language and accept headers of a browser, a caller can replace them', async () => {
+  // PSE's server answers /servererrorpage to a request without Accept-Language.
+  const web = createFakeWeb()
+    .on('GET', 'https://www.pse.com/en/login', (request) =>
+      request.headers['accept-language']
+        ? { text: 'login' }
+        : { status: 302, headers: { location: '/servererrorpage?aspxerrorpath=/login' } },
+    )
+    .on('GET', 'https://www.pse.com/servererrorpage', { status: 500, text: 'error' });
+  const session = createHttpSession({ fetch: web.fetch });
+  assert.equal(
+    (await session.request('https://www.pse.com/en/login', { okOnly: true })).text(),
+    'login',
+  );
+  assert.equal(web.requests[0].headers['accept-language'], 'en-US,en;q=0.9');
+  assert.match(web.requests[0].headers.accept, /^text\/html/);
+  await session.request('https://www.pse.com/en/login', {
+    headers: { Accept: 'application/json' },
+  });
+  assert.equal(web.requests[1].headers.accept, 'application/json');
+});

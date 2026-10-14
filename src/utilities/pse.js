@@ -7,10 +7,10 @@
 //   2. AsyncSignIn takes it with the credentials;
 //   3. an empty account selector means the sign-in failed;
 //   4. the usage page assigns `var accessToken = "..."` in an inline script.
-// Every error names its step. The live check of 14/10/2026 saw a made-up
-// account end on /servererrorpage (HTTP 500): when the sign-in or the account
-// selector lands there, it is read as refused credentials. Not verified with
-// a real account yet.
+// Every error names its step. PSE answers /servererrorpage (HTTP 500) to a
+// request without Accept-Language: the HTTP session sends one by default.
+// When the sign-in or the account selector still lands there, it is read as
+// refused credentials. Not verified with a real account yet.
 // -----------------------------------------------------------------------------
 
 import { CannotConnectError, HttpError, InvalidAuthError } from '../errors.js';

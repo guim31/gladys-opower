@@ -19,6 +19,11 @@ import { CannotConnectError, HttpError } from './errors.js';
 export const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36';
 
+export const DEFAULT_HEADERS = {
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.9',
+};
+
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
 const MAX_REDIRECTS = 15;
 
@@ -260,7 +265,9 @@ export function createHttpSession({
   trace,
 } = {}) {
   async function once(url, { method, headers, body }) {
-    const sent = { 'User-Agent': USER_AGENT, ...headers };
+    // What a browser sends: PSE's ASP.NET server answers its error page to a
+    // request without Accept-Language. A caller's header replaces a default.
+    const sent = { 'User-Agent': USER_AGENT, ...DEFAULT_HEADERS, ...headers };
     const cookie = jar.header(url);
     if (cookie) {
       sent.Cookie = cookie;
