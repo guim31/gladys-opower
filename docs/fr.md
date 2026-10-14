@@ -33,26 +33,26 @@ fournisseur avec votre propre compte, comme le fait son application mobile.
 
 La connexion diffère pour chaque fournisseur. Ceux-ci sont pris en charge :
 
-| Fournisseur                                  | Connexion                                                                           |
-| -------------------------------------------- | ----------------------------------------------------------------------------------- |
-| AEP Ohio                                     | identifiant et mot de passe                                                         |
-| AEP Texas                                    | identifiant et mot de passe                                                         |
-| Appalachian Power                            | identifiant et mot de passe                                                         |
-| Atlantic City Electric                       | code de vérification (e-mail ou SMS)                                                |
-| Baltimore Gas and Electric (BGE)             | code de vérification (e-mail ou SMS)                                                |
-| Commonwealth Edison (ComEd)                  | code de vérification (e-mail ou SMS)                                                |
-| Consolidated Edison (ConEd)                  | mot de passe, et la clé d'authentification si la double authentification est active |
-| Delmarva Power                               | code de vérification (e-mail ou SMS)                                                |
-| Duquesne Light Company (DQE)                 | identifiant et mot de passe                                                         |
-| Indiana Michigan Power                       | identifiant et mot de passe                                                         |
-| Kentucky Power                               | identifiant et mot de passe                                                         |
-| Orange & Rockland Utilities (O&R)            | mot de passe, et la clé d'authentification si la double authentification est active |
-| Pacific Gas and Electric Company (PG&E)      | mot de passe, parfois un code de vérification (e-mail ou SMS)                       |
-| PECO Energy Company (PECO)                   | code de vérification (e-mail ou SMS)                                                |
-| Potomac Electric Power Company (Pepco)       | code de vérification (e-mail ou SMS)                                                |
-| Public Service Company of Oklahoma (PSO)     | identifiant et mot de passe                                                         |
-| Puget Sound Energy (PSE)                     | identifiant et mot de passe                                                         |
-| Southwestern Electric Power Company (SWEPCO) | identifiant et mot de passe                                                         |
+| Fournisseur                                  | Connexion                                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| AEP Ohio                                     | identifiant et mot de passe                                                                             |
+| AEP Texas                                    | identifiant et mot de passe                                                                             |
+| Appalachian Power                            | identifiant et mot de passe                                                                             |
+| Atlantic City Electric                       | code de vérification (e-mail ou SMS)                                                                    |
+| Baltimore Gas and Electric (BGE)             | code de vérification (e-mail ou SMS)                                                                    |
+| Commonwealth Edison (ComEd)                  | code de vérification (e-mail ou SMS)                                                                    |
+| Consolidated Edison (ConEd)                  | mot de passe, et la clé d'authentification si la double authentification est active                     |
+| Delmarva Power                               | code de vérification (e-mail ou SMS)                                                                    |
+| Duquesne Light Company (DQE)                 | identifiant et mot de passe                                                                             |
+| Indiana Michigan Power                       | identifiant et mot de passe                                                                             |
+| Kentucky Power                               | identifiant et mot de passe                                                                             |
+| Orange & Rockland Utilities (O&R)            | mot de passe, et la clé d'authentification si la double authentification est active                     |
+| Pacific Gas and Electric Company (PG&E)      | mot de passe, parfois un code de vérification (e-mail ou SMS)                                           |
+| PECO Energy Company (PECO)                   | code de vérification (e-mail ou SMS)                                                                    |
+| Potomac Electric Power Company (Pepco)       | code de vérification (e-mail ou SMS)                                                                    |
+| Public Service Company of Oklahoma (PSO)     | identifiant et mot de passe                                                                             |
+| Puget Sound Energy (PSE)                     | identifiant et mot de passe (expérimental : l'essai réel d'un faux compte a fini sur une page d'erreur) |
+| Southwestern Electric Power Company (SWEPCO) | identifiant et mot de passe                                                                             |
 
 ### Pas encore pris en charge
 

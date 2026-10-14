@@ -122,3 +122,90 @@ test('a JSON answer that is not JSON is a retryable error', async () => {
   const response = await session.request('https://x.example.com/json');
   assert.throws(() => response.json(), CannotConnectError);
 });
+
+test('a slow site: the wait for the headers and the reading of the body have their own delays', async () => {
+  // A fetch that answers after `headersMs`, then streams the body after `bodyMs`.
+  const slow =
+    ({ headersMs, bodyMs }) =>
+    (_url, init) =>
+      new Promise((resolve, reject) => {
+        const abort = () => reject(init.signal.reason);
+        init.signal.addEventListener('abort', abort, { once: true });
+        setTimeout(() => {
+          const stream = new ReadableStream({
+            start(controller) {
+              const timer = setTimeout(() => {
+                controller.enqueue(new TextEncoder().encode('<html>usage</html>'));
+                controller.close();
+              }, bodyMs);
+              init.signal.addEventListener('abort', () => {
+                clearTimeout(timer);
+                controller.error(init.signal.reason);
+              });
+            },
+          });
+          resolve(new Response(stream, { status: 200 }));
+        }, headersMs);
+      });
+
+  // AEP Ohio: headers after ~7 s, the whole page after ~22 s: within the delays.
+  const fine = createHttpSession({
+    fetch: slow({ headersMs: 70, bodyMs: 150 }),
+    headersTimeoutMs: 100,
+    bodyTimeoutMs: 200,
+  });
+  assert.equal(
+    (await fine.request('https://www.aepohio.com/account/usage/')).text(),
+    '<html>usage</html>',
+  );
+
+  const noHeaders = createHttpSession({
+    fetch: slow({ headersMs: 300, bodyMs: 0 }),
+    headersTimeoutMs: 50,
+  });
+  await assert.rejects(
+    noHeaders.request('https://www.aepohio.com/'),
+    /timed out waiting for the answer/,
+  );
+
+  const slowBody = createHttpSession({
+    fetch: slow({ headersMs: 0, bodyMs: 300 }),
+    bodyTimeoutMs: 50,
+  });
+  await assert.rejects(
+    slowBody.request('https://www.aepohio.com/'),
+    /timed out while reading the answer/,
+  );
+});
+
+test('the trace lists every request with its answer, the session headers masked', async () => {
+  const web = createFakeWeb()
+    .on('POST', 'https://www.pse.com/api/pseauthentication/AsyncSignIn', {
+      status: 302,
+      headers: { location: '/servererrorpage?aspxerrorpath=/x' },
+      cookies: ['session=secret-value; Path=/'],
+    })
+    .on('GET', 'https://www.pse.com/servererrorpage', { status: 500, text: 'error' });
+  const entries = [];
+  const session = createHttpSession({ fetch: web.fetch, trace: (entry) => entries.push(entry) });
+  await session.request('https://www.pse.com/api/pseauthentication/AsyncSignIn', {
+    method: 'POST',
+    form: { Password: 'hunter2' },
+    headers: { Authorization: 'Bearer abc' },
+  });
+  assert.deepEqual(
+    entries.map(({ method, url, status, location }) => [method, url, status, location]),
+    [
+      [
+        'POST',
+        'https://www.pse.com/api/pseauthentication/AsyncSignIn',
+        302,
+        'https://www.pse.com/servererrorpage',
+      ],
+      ['GET', 'https://www.pse.com/servererrorpage', 500, undefined],
+    ],
+  );
+  assert.equal(entries[0].headers.Authorization, '(set)');
+  assert.equal(entries[1].headers.Cookie, '(set)');
+  assert.doesNotMatch(JSON.stringify(entries), /hunter2|secret-value|abc/);
+});

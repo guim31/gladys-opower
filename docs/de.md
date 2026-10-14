@@ -31,26 +31,26 @@ Website deines Versorgers an, wie es seine Mobil-App tut.
 
 Die Anmeldung ist bei jedem Versorger anders. Diese werden unterstützt:
 
-| Versorger                                    | Anmeldung                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------- |
-| AEP Ohio                                     | Benutzername und Passwort                                           |
-| AEP Texas                                    | Benutzername und Passwort                                           |
-| Appalachian Power                            | Benutzername und Passwort                                           |
-| Atlantic City Electric                       | Bestätigungscode (E-Mail oder SMS)                                  |
-| Baltimore Gas and Electric (BGE)             | Bestätigungscode (E-Mail oder SMS)                                  |
-| Commonwealth Edison (ComEd)                  | Bestätigungscode (E-Mail oder SMS)                                  |
-| Consolidated Edison (ConEd)                  | Passwort, und der Authenticator-Schlüssel bei Zwei-Faktor-Anmeldung |
-| Delmarva Power                               | Bestätigungscode (E-Mail oder SMS)                                  |
-| Duquesne Light Company (DQE)                 | Benutzername und Passwort                                           |
-| Indiana Michigan Power                       | Benutzername und Passwort                                           |
-| Kentucky Power                               | Benutzername und Passwort                                           |
-| Orange & Rockland Utilities (O&R)            | Passwort, und der Authenticator-Schlüssel bei Zwei-Faktor-Anmeldung |
-| Pacific Gas and Electric Company (PG&E)      | Passwort, manchmal ein Bestätigungscode (E-Mail oder SMS)           |
-| PECO Energy Company (PECO)                   | Bestätigungscode (E-Mail oder SMS)                                  |
-| Potomac Electric Power Company (Pepco)       | Bestätigungscode (E-Mail oder SMS)                                  |
-| Public Service Company of Oklahoma (PSO)     | Benutzername und Passwort                                           |
-| Puget Sound Energy (PSE)                     | Benutzername und Passwort                                           |
-| Southwestern Electric Power Company (SWEPCO) | Benutzername und Passwort                                           |
+| Versorger                                    | Anmeldung                                                                                                       |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| AEP Ohio                                     | Benutzername und Passwort                                                                                       |
+| AEP Texas                                    | Benutzername und Passwort                                                                                       |
+| Appalachian Power                            | Benutzername und Passwort                                                                                       |
+| Atlantic City Electric                       | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Baltimore Gas and Electric (BGE)             | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Commonwealth Edison (ComEd)                  | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Consolidated Edison (ConEd)                  | Passwort, und der Authenticator-Schlüssel bei Zwei-Faktor-Anmeldung                                             |
+| Delmarva Power                               | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Duquesne Light Company (DQE)                 | Benutzername und Passwort                                                                                       |
+| Indiana Michigan Power                       | Benutzername und Passwort                                                                                       |
+| Kentucky Power                               | Benutzername und Passwort                                                                                       |
+| Orange & Rockland Utilities (O&R)            | Passwort, und der Authenticator-Schlüssel bei Zwei-Faktor-Anmeldung                                             |
+| Pacific Gas and Electric Company (PG&E)      | Passwort, manchmal ein Bestätigungscode (E-Mail oder SMS)                                                       |
+| PECO Energy Company (PECO)                   | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Potomac Electric Power Company (Pepco)       | Bestätigungscode (E-Mail oder SMS)                                                                              |
+| Public Service Company of Oklahoma (PSO)     | Benutzername und Passwort                                                                                       |
+| Puget Sound Energy (PSE)                     | Benutzername und Passwort (experimentell: der Echttest mit einem erfundenen Konto endete auf einer Fehlerseite) |
+| Southwestern Electric Power Company (SWEPCO) | Benutzername und Passwort                                                                                       |
 
 ### Noch nicht unterstützt
 

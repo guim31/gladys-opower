@@ -266,6 +266,13 @@ personnel affiché).
 - AEP : formulaire ASP.NET aux noms générés, tous les `<input>` renvoyés ; vider les cookies
   `opower.com` avant une nouvelle connexion. PSE : jeton anti-falsification puis jeton dans un
   `<script>`. Duquesne : derrière Incapsula, en-têtes de navigation.
+- **Sonde réelle du 14/10/2026** (faux comptes) : PG&E, ConEd et ComEd refusent proprement.
+  AEP Ohio est **lent** (en-têtes en ~7 s, page de 215 Ko en ~22 s) : `src/http.js` a deux délais,
+  60 s pour les en-têtes puis 90 s pour le corps, et dit lequel a expiré. PSE a fini sur
+  `/servererrorpage` (HTTP 500) : après les identifiants ou au sélecteur de compte, c'est lu comme un
+  refus ; PSE reste « expérimental » dans les docs tant qu'un vrai compte ne l'a pas validé.
+  `node scripts/probe.mjs --trace` liste chaque requête (sans query, cookies et jetons masqués)
+  pour situer l'étape qui échoue.
 - Un nouveau login **annule le code envoyé** : le cycle de 12 h saute la connexion tant qu'un code
   est attendu (10 min). Les actions « Envoyer le code » / « Saisir le code » portent le défi en
   mémoire (même session HTTP).

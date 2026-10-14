@@ -28,26 +28,26 @@ like their mobile app does.
 
 The sign-in differs for each utility. These are supported:
 
-| Utility                                      | Sign-in                                                       |
-| -------------------------------------------- | ------------------------------------------------------------- |
-| AEP Ohio                                     | username and password                                         |
-| AEP Texas                                    | username and password                                         |
-| Appalachian Power                            | username and password                                         |
-| Atlantic City Electric                       | verification code (email or text)                             |
-| Baltimore Gas and Electric (BGE)             | verification code (email or text)                             |
-| Commonwealth Edison (ComEd)                  | verification code (email or text)                             |
-| Consolidated Edison (ConEd)                  | password, and the authenticator key if two-step sign-in is on |
-| Delmarva Power                               | verification code (email or text)                             |
-| Duquesne Light Company (DQE)                 | username and password                                         |
-| Indiana Michigan Power                       | username and password                                         |
-| Kentucky Power                               | username and password                                         |
-| Orange & Rockland Utilities (O&R)            | password, and the authenticator key if two-step sign-in is on |
-| Pacific Gas and Electric Company (PG&E)      | password, sometimes a verification code (email or text)       |
-| PECO Energy Company (PECO)                   | verification code (email or text)                             |
-| Potomac Electric Power Company (Pepco)       | verification code (email or text)                             |
-| Public Service Company of Oklahoma (PSO)     | username and password                                         |
-| Puget Sound Energy (PSE)                     | username and password                                         |
-| Southwestern Electric Power Company (SWEPCO) | username and password                                         |
+| Utility                                      | Sign-in                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| AEP Ohio                                     | username and password                                                                            |
+| AEP Texas                                    | username and password                                                                            |
+| Appalachian Power                            | username and password                                                                            |
+| Atlantic City Electric                       | verification code (email or text)                                                                |
+| Baltimore Gas and Electric (BGE)             | verification code (email or text)                                                                |
+| Commonwealth Edison (ComEd)                  | verification code (email or text)                                                                |
+| Consolidated Edison (ConEd)                  | password, and the authenticator key if two-step sign-in is on                                    |
+| Delmarva Power                               | verification code (email or text)                                                                |
+| Duquesne Light Company (DQE)                 | username and password                                                                            |
+| Indiana Michigan Power                       | username and password                                                                            |
+| Kentucky Power                               | username and password                                                                            |
+| Orange & Rockland Utilities (O&R)            | password, and the authenticator key if two-step sign-in is on                                    |
+| Pacific Gas and Electric Company (PG&E)      | password, sometimes a verification code (email or text)                                          |
+| PECO Energy Company (PECO)                   | verification code (email or text)                                                                |
+| Potomac Electric Power Company (Pepco)       | verification code (email or text)                                                                |
+| Public Service Company of Oklahoma (PSO)     | username and password                                                                            |
+| Puget Sound Energy (PSE)                     | username and password (experimental: the live check of a made-up account ended on an error page) |
+| Southwestern Electric Power Company (SWEPCO) | username and password                                                                            |
 
 ### Not supported yet
 

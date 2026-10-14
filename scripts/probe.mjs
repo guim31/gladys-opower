@@ -6,13 +6,15 @@
 // the Python library, not that the live sites still answer that way. This
 // script checks the live side without an account:
 //
-//   node scripts/probe.mjs
+//   node scripts/probe.mjs            (add --trace to list every request)
 //
 // For five large utilities (PG&E, ConEd, ComEd, AEP Ohio, PSE), it signs in
 // with a made-up account and expects a clean refusal: "refused cleanly" means
 // the site answered through the whole flow the integration expects up to the
 // password check; anything else (a page that changed, a network error) is
-// printed with its class and a reason free of any secret.
+// printed with its class, a reason free of any secret, and every request of
+// the sign-in (URL without query, status, redirect, headers with the cookies
+// and tokens masked), so the failing step shows.
 //
 // With a real account, it goes further — still read-only:
 //
@@ -45,22 +47,44 @@ function describe(err) {
   return `${kind}: ${String(err?.message ?? err).slice(0, 160)}`;
 }
 
+const TRACE = process.argv.includes('--trace');
+
+/** One line per request: method, URL without query, status, redirect, headers (secrets masked). */
+function formatTrace(entries) {
+  return entries
+    .map((entry) => {
+      const answer =
+        entry.error ?? `${entry.status}${entry.location ? ` → ${entry.location}` : ''}`;
+      const headers = Object.entries(entry.headers)
+        .filter(([key]) => key !== 'User-Agent')
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('; ');
+      return `    ${entry.method} ${entry.url} → ${answer}${headers ? `  [${headers}]` : ''}`;
+    })
+    .join('\n');
+}
+
 async function probeRefusal(key) {
   const utility = findUtility(key);
-  const session = createHttpSession();
+  const entries = [];
+  const session = createHttpSession({ trace: (entry) => entries.push(entry) });
+  let line;
+  let failed = true;
   try {
     await utility.create().login(session, { ...FAKE_ACCOUNT, loginData: {} });
-    return `${key}: UNEXPECTED — a made-up account was accepted`;
+    line = `${key}: UNEXPECTED — a made-up account was accepted`;
   } catch (err) {
     if (err instanceof InvalidAuthError) {
-      return `${key}: refused cleanly (${describe(err)})`;
-    }
-    if (err instanceof MfaRequiredError) {
+      line = `${key}: refused cleanly (${describe(err)})`;
+      failed = false;
+    } else if (err instanceof MfaRequiredError) {
       // Exelon checks the password first: a code request means it was accepted.
-      return `${key}: UNEXPECTED — a verification code was asked for a made-up account`;
+      line = `${key}: UNEXPECTED — a verification code was asked for a made-up account`;
+    } else {
+      line = `${key}: FAILED before the password check (${describe(err)})`;
     }
-    return `${key}: FAILED before the password check (${describe(err)})`;
   }
+  return failed || TRACE ? `${line}\n${formatTrace(entries)}` : line;
 }
 
 async function probeAccount() {

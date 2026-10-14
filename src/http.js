@@ -229,16 +229,35 @@ function encodeForm(form) {
   return params.toString();
 }
 
+// Header values never written to a trace: they carry the session.
+const SECRET_HEADERS = new Set(['cookie', 'authorization', 'x-csrf-token']);
+
+/** A timer that aborts a controller with a TimeoutError, cleared once the step is done. */
+function abortAfter(controller, ms) {
+  const timer = setTimeout(
+    () => controller.abort(new DOMException('The operation timed out', 'TimeoutError')),
+    ms,
+  );
+  timer.unref?.();
+  return timer;
+}
+
 /**
  * @param {object} [options]
  * @param {typeof fetch} [options.fetch] the fetch implementation (injected by the tests)
- * @param {number} [options.timeoutMs] per request
+ * @param {number} [options.headersTimeoutMs] wait for the answer's headers
+ * @param {number} [options.bodyTimeoutMs] then for its body: some sites send 200 KB slowly
+ *   (AEP Ohio: headers in ~7 s, the whole page in ~22 s)
  * @param {CookieJar} [options.jar]
+ * @param {(entry: object) => void} [options.trace] called per request with what was
+ *   sent and answered, secrets left out (scripts/probe.mjs prints it)
  */
 export function createHttpSession({
   fetch: fetchImpl = globalThis.fetch,
-  timeoutMs = 30000,
+  headersTimeoutMs = 60000,
+  bodyTimeoutMs = 90000,
   jar = new CookieJar(),
+  trace,
 } = {}) {
   async function once(url, { method, headers, body }) {
     const sent = { 'User-Agent': USER_AGENT, ...headers };
@@ -246,6 +265,18 @@ export function createHttpSession({
     if (cookie) {
       sent.Cookie = cookie;
     }
+    const entry = {
+      method,
+      url: safeUrl(url),
+      headers: Object.fromEntries(
+        Object.entries(sent).map(([key, value]) => [
+          key,
+          SECRET_HEADERS.has(key.toLowerCase()) ? '(set)' : value,
+        ]),
+      ),
+    };
+    const controller = new AbortController();
+    let timer = abortAfter(controller, headersTimeoutMs);
     let response;
     try {
       response = await fetchImpl(url, {
@@ -253,22 +284,40 @@ export function createHttpSession({
         headers: sent,
         body,
         redirect: 'manual',
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: controller.signal,
       });
     } catch (err) {
-      const reason = err?.name === 'TimeoutError' ? 'timed out' : 'network error';
+      const timedOut =
+        err?.name === 'TimeoutError' || controller.signal.reason?.name === 'TimeoutError';
+      const reason = timedOut ? 'timed out waiting for the answer' : 'network error';
+      trace?.({ ...entry, error: reason });
       throw new CannotConnectError(`${safeUrl(url)}: ${reason}`);
+    } finally {
+      clearTimeout(timer);
     }
     const setCookies =
       typeof response.headers.getSetCookie === 'function'
         ? response.headers.getSetCookie()
         : (response.headers.get('set-cookie') ?? '').split(/,(?=\s*[^;,=\s]+=)/).filter(Boolean);
     jar.setFromHeaders(url, setCookies);
+    const location = response.headers.get('location');
+    trace?.({
+      ...entry,
+      status: response.status,
+      ...(location ? { location: safeUrl(new URL(location, url).toString()) } : {}),
+    });
     let text;
+    timer = abortAfter(controller, bodyTimeoutMs);
     try {
       text = await response.text();
-    } catch {
-      throw new CannotConnectError(`${safeUrl(url)}: the answer was cut`);
+    } catch (err) {
+      const timedOut =
+        err?.name === 'TimeoutError' || controller.signal.reason?.name === 'TimeoutError';
+      throw new CannotConnectError(
+        `${safeUrl(url)}: ${timedOut ? 'timed out while reading the answer' : 'the answer was cut'}`,
+      );
+    } finally {
+      clearTimeout(timer);
     }
     return new HttpResponse({
       status: response.status,

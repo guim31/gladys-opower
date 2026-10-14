@@ -32,26 +32,26 @@ su compañía con su propia cuenta, como lo hace su aplicación móvil.
 
 El inicio de sesión es distinto en cada compañía. Estas son compatibles:
 
-| Compañía                                     | Inicio de sesión                                                                    |
-| -------------------------------------------- | ----------------------------------------------------------------------------------- |
-| AEP Ohio                                     | usuario y contraseña                                                                |
-| AEP Texas                                    | usuario y contraseña                                                                |
-| Appalachian Power                            | usuario y contraseña                                                                |
-| Atlantic City Electric                       | código de verificación (correo o SMS)                                               |
-| Baltimore Gas and Electric (BGE)             | código de verificación (correo o SMS)                                               |
-| Commonwealth Edison (ComEd)                  | código de verificación (correo o SMS)                                               |
-| Consolidated Edison (ConEd)                  | contraseña, y la clave de autenticación si la verificación en dos pasos está activa |
-| Delmarva Power                               | código de verificación (correo o SMS)                                               |
-| Duquesne Light Company (DQE)                 | usuario y contraseña                                                                |
-| Indiana Michigan Power                       | usuario y contraseña                                                                |
-| Kentucky Power                               | usuario y contraseña                                                                |
-| Orange & Rockland Utilities (O&R)            | contraseña, y la clave de autenticación si la verificación en dos pasos está activa |
-| Pacific Gas and Electric Company (PG&E)      | contraseña, a veces un código de verificación (correo o SMS)                        |
-| PECO Energy Company (PECO)                   | código de verificación (correo o SMS)                                               |
-| Potomac Electric Power Company (Pepco)       | código de verificación (correo o SMS)                                               |
-| Public Service Company of Oklahoma (PSO)     | usuario y contraseña                                                                |
-| Puget Sound Energy (PSE)                     | usuario y contraseña                                                                |
-| Southwestern Electric Power Company (SWEPCO) | usuario y contraseña                                                                |
+| Compañía                                     | Inicio de sesión                                                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| AEP Ohio                                     | usuario y contraseña                                                                                        |
+| AEP Texas                                    | usuario y contraseña                                                                                        |
+| Appalachian Power                            | usuario y contraseña                                                                                        |
+| Atlantic City Electric                       | código de verificación (correo o SMS)                                                                       |
+| Baltimore Gas and Electric (BGE)             | código de verificación (correo o SMS)                                                                       |
+| Commonwealth Edison (ComEd)                  | código de verificación (correo o SMS)                                                                       |
+| Consolidated Edison (ConEd)                  | contraseña, y la clave de autenticación si la verificación en dos pasos está activa                         |
+| Delmarva Power                               | código de verificación (correo o SMS)                                                                       |
+| Duquesne Light Company (DQE)                 | usuario y contraseña                                                                                        |
+| Indiana Michigan Power                       | usuario y contraseña                                                                                        |
+| Kentucky Power                               | usuario y contraseña                                                                                        |
+| Orange & Rockland Utilities (O&R)            | contraseña, y la clave de autenticación si la verificación en dos pasos está activa                         |
+| Pacific Gas and Electric Company (PG&E)      | contraseña, a veces un código de verificación (correo o SMS)                                                |
+| PECO Energy Company (PECO)                   | código de verificación (correo o SMS)                                                                       |
+| Potomac Electric Power Company (Pepco)       | código de verificación (correo o SMS)                                                                       |
+| Public Service Company of Oklahoma (PSO)     | usuario y contraseña                                                                                        |
+| Puget Sound Energy (PSE)                     | usuario y contraseña (experimental: la prueba real con una cuenta inventada terminó en una página de error) |
+| Southwestern Electric Power Company (SWEPCO) | usuario y contraseña                                                                                        |
 
 ### Aún no compatibles
 

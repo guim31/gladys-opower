@@ -366,6 +366,47 @@ test('PSE: anti-forgery token, sign-in, then the token of the usage page', async
   await assert.rejects(login(pse, web, { username: 'u', password: 'bad' }).run(), InvalidAuthError);
 });
 
+test('PSE: its error page after the credentials is a refusal, elsewhere an outage naming the step', async () => {
+  const site = (failAt) => {
+    const web = createFakeWeb();
+    const errorPage = { status: 302, headers: { location: '/servererrorpage' } };
+    web
+      .on('GET', 'https://www.pse.com/servererrorpage', { status: 500, text: 'error' })
+      .on('GET', 'https://www.pse.com/en/login', {
+        text: '<input name="__RequestVerificationToken" type="hidden" value="anti-forgery">',
+      })
+      .on(
+        'POST',
+        'https://www.pse.com/api/pseauthentication/AsyncSignIn',
+        failAt === 'sign-in' ? errorPage : { json: {} },
+      )
+      .on(
+        'GET',
+        'https://www.pse.com/api/AccountSelector/GetContractAccountJson',
+        failAt === 'selector' ? errorPage : { text: '[{}]' },
+      )
+      .on(
+        'GET',
+        'https://www.pse.com/en/account-and-billing/my-usage/view-my-usage',
+        failAt === 'usage' ? errorPage : { text: '' },
+      );
+    return login(pse, web, { username: 'u', password: 'pw' }).run();
+  };
+  await assert.rejects(
+    site('sign-in'),
+    (err) => err instanceof InvalidAuthError && /sign-in: server error page/.test(err.message),
+  );
+  await assert.rejects(
+    site('selector'),
+    (err) => err instanceof InvalidAuthError && /account selector/.test(err.message),
+  );
+  await assert.rejects(
+    site('usage'),
+    (err) =>
+      err instanceof CannotConnectError && /PSE: usage page failed \(HTTP 500/.test(err.message),
+  );
+});
+
 test('Duquesne Light: a 400 is a refused password, the token comes from the page', async () => {
   const web = createFakeWeb();
   web
