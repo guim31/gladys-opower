@@ -1,0 +1,46 @@
+{
+  "customers": [
+    {
+      "id": 10000001,
+      "uuid": "11111111-1111-11e5-bf2b-000000000001",
+      "legacyOpowerId": "3f-1-000000",
+      "accountNumber": "1000000001",
+      "accountName": "TEST RES 1000000001",
+      "address": {
+        "uuid": "44444444-4444-11e3-9228-000000000004",
+        "streetNumber": "1",
+        "streetName": "MAIN ST",
+        "subpremise": null,
+        "postalCode": "94000",
+        "city": "TESTVILLE",
+        "country": "US",
+        "state": "CA"
+      },
+      "type": "RESIDENTIAL",
+      "utilityAccounts": [
+        {
+          "id": 20000001,
+          "uuid": "22222222-2222-11e5-bf2b-000000000002",
+          "utilityAccountId": "1000000002",
+          "utilityAccountId2": "1000000003",
+          "servicePointId": 3000001,
+          "meterType": "ELEC",
+          "preferredUtilityAccountId": "1000000003",
+          "readResolution": "QUARTER_HOUR"
+        },
+        {
+          "id": 20000002,
+          "uuid": "33333333-3333-11e5-bf2b-000000000003",
+          "utilityAccountId": "1000000004",
+          "servicePointId": 3000002,
+          "meterType": "GAS",
+          "preferredUtilityAccountId": "1000000004",
+          "readResolution": "DAY"
+        }
+      ]
+    }
+  ],
+  "offset": 0,
+  "batchSize": 100,
+  "total": 1
+}

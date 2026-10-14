@@ -1,177 +1,814 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Opower (US utilities)",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Electricity and gas usage, cost and bill forecast from US utilities on Opower (PG&E, ConEd...).",
+    "fr": "Consommation, coût et prévision de facture des fournisseurs américains sur Opower (PG&E, ConEd…).",
+    "de": "Strom- und Gasverbrauch, Kosten und Rechnungsprognose von US-Versorgern auf Opower (PG&E…).",
+    "es": "Consumo, coste y previsión de factura de las compañías de EE. UU. en Opower (PG&E, ConEd…)."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-opower:1.0.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-opower/main/cover.png",
+  "categories": ["energy"],
+  "transports": ["cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Your utility account",
+        "fr": "Votre compte fournisseur",
+        "de": "Dein Versorgerkonto",
+        "es": "Su cuenta de la compañía"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Sign in with the username and password of your utility’s website. Usage arrives a day or two late and is read every 12 hours. Not affiliated with Oracle Opower or the utilities.",
+        "fr": "Connectez-vous avec l’identifiant et le mot de passe du site de votre fournisseur. Les données arrivent avec un ou deux jours de retard et sont lues toutes les 12 heures. Sans lien avec Oracle Opower ni les fournisseurs.",
+        "de": "Melde dich mit Benutzername und Passwort der Website deines Versorgers an. Die Daten kommen ein bis zwei Tage später und werden alle 12 Stunden gelesen. Nicht mit Oracle Opower oder den Versorgern verbunden.",
+        "es": "Inicie sesión con el usuario y la contraseña del sitio web de su compañía. Los datos llegan con uno o dos días de retraso y se leen cada 12 horas. Sin relación con Oracle Opower ni con las compañías."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-opower/blob/main/docs/en.md",
+          "label": {
+            "en": "Documentation and supported utilities",
+            "fr": "Documentation et fournisseurs pris en charge",
+            "de": "Dokumentation und unterstützte Versorger",
+            "es": "Documentación y compañías compatibles"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
+      "key": "utility",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
+      "label": {
+        "en": "Utility",
+        "fr": "Fournisseur",
+        "de": "Versorger",
+        "es": "Compañía"
+      },
+      "description": {
+        "en": "Only the utilities listed are supported for now.",
+        "fr": "Seuls les fournisseurs listés sont pris en charge pour l’instant.",
+        "de": "Vorerst werden nur die aufgeführten Versorger unterstützt.",
+        "es": "Por ahora solo se admiten las compañías de la lista."
+      },
+      "required": true,
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "aepohio",
+          "label": {
+            "en": "AEP Ohio",
+            "fr": "AEP Ohio",
+            "de": "AEP Ohio",
+            "es": "AEP Ohio"
+          }
+        },
+        {
+          "value": "aeptexas",
+          "label": {
+            "en": "AEP Texas",
+            "fr": "AEP Texas",
+            "de": "AEP Texas",
+            "es": "AEP Texas"
+          }
+        },
+        {
+          "value": "appalachianpower",
+          "label": {
+            "en": "Appalachian Power",
+            "fr": "Appalachian Power",
+            "de": "Appalachian Power",
+            "es": "Appalachian Power"
+          }
+        },
+        {
+          "value": "atlanticcityelectric",
+          "label": {
+            "en": "Atlantic City Electric",
+            "fr": "Atlantic City Electric",
+            "de": "Atlantic City Electric",
+            "es": "Atlantic City Electric"
+          }
+        },
+        {
+          "value": "bge",
+          "label": {
+            "en": "Baltimore Gas and Electric (BGE)",
+            "fr": "Baltimore Gas and Electric (BGE)",
+            "de": "Baltimore Gas and Electric (BGE)",
+            "es": "Baltimore Gas and Electric (BGE)"
+          }
+        },
+        {
+          "value": "comed",
+          "label": {
+            "en": "Commonwealth Edison (ComEd)",
+            "fr": "Commonwealth Edison (ComEd)",
+            "de": "Commonwealth Edison (ComEd)",
+            "es": "Commonwealth Edison (ComEd)"
+          }
+        },
+        {
+          "value": "coned",
+          "label": {
+            "en": "Consolidated Edison (ConEd)",
+            "fr": "Consolidated Edison (ConEd)",
+            "de": "Consolidated Edison (ConEd)",
+            "es": "Consolidated Edison (ConEd)"
+          }
+        },
+        {
+          "value": "delmarva",
+          "label": {
+            "en": "Delmarva Power",
+            "fr": "Delmarva Power",
+            "de": "Delmarva Power",
+            "es": "Delmarva Power"
+          }
+        },
+        {
+          "value": "duquesnelight",
+          "label": {
+            "en": "Duquesne Light Company (DQE)",
+            "fr": "Duquesne Light Company (DQE)",
+            "de": "Duquesne Light Company (DQE)",
+            "es": "Duquesne Light Company (DQE)"
+          }
+        },
+        {
+          "value": "indianamichiganpower",
+          "label": {
+            "en": "Indiana Michigan Power",
+            "fr": "Indiana Michigan Power",
+            "de": "Indiana Michigan Power",
+            "es": "Indiana Michigan Power"
+          }
+        },
+        {
+          "value": "kentuckypower",
+          "label": {
+            "en": "Kentucky Power",
+            "fr": "Kentucky Power",
+            "de": "Kentucky Power",
+            "es": "Kentucky Power"
+          }
+        },
+        {
+          "value": "oru",
+          "label": {
+            "en": "Orange & Rockland Utilities (O&R)",
+            "fr": "Orange & Rockland Utilities (O&R)",
+            "de": "Orange & Rockland Utilities (O&R)",
+            "es": "Orange & Rockland Utilities (O&R)"
+          }
+        },
+        {
+          "value": "pge",
+          "label": {
+            "en": "Pacific Gas and Electric Company (PG&E)",
+            "fr": "Pacific Gas and Electric Company (PG&E)",
+            "de": "Pacific Gas and Electric Company (PG&E)",
+            "es": "Pacific Gas and Electric Company (PG&E)"
+          }
+        },
+        {
+          "value": "peco",
+          "label": {
+            "en": "PECO Energy Company (PECO)",
+            "fr": "PECO Energy Company (PECO)",
+            "de": "PECO Energy Company (PECO)",
+            "es": "PECO Energy Company (PECO)"
+          }
+        },
+        {
+          "value": "pepco",
+          "label": {
+            "en": "Potomac Electric Power Company (Pepco)",
+            "fr": "Potomac Electric Power Company (Pepco)",
+            "de": "Potomac Electric Power Company (Pepco)",
+            "es": "Potomac Electric Power Company (Pepco)"
+          }
+        },
+        {
+          "value": "psoklahoma",
+          "label": {
+            "en": "Public Service Company of Oklahoma (PSO)",
+            "fr": "Public Service Company of Oklahoma (PSO)",
+            "de": "Public Service Company of Oklahoma (PSO)",
+            "es": "Public Service Company of Oklahoma (PSO)"
+          }
+        },
+        {
+          "value": "pse",
+          "label": {
+            "en": "Puget Sound Energy (PSE)",
+            "fr": "Puget Sound Energy (PSE)",
+            "de": "Puget Sound Energy (PSE)",
+            "es": "Puget Sound Energy (PSE)"
+          }
+        },
+        {
+          "value": "swepco",
+          "label": {
+            "en": "Southwestern Electric Power Company (SWEPCO)",
+            "fr": "Southwestern Electric Power Company (SWEPCO)",
+            "de": "Southwestern Electric Power Company (SWEPCO)",
+            "es": "Southwestern Electric Power Company (SWEPCO)"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "username",
+      "type": "string",
+      "label": {
+        "en": "Username or email",
+        "fr": "Identifiant ou e-mail",
+        "de": "Benutzername oder E-Mail",
+        "es": "Usuario o correo electrónico"
+      },
+      "placeholder": {
+        "en": "e.g. name@example.com",
+        "fr": "ex. nom@example.com",
+        "de": "z. B. name@example.com",
+        "es": "p. ej. nombre@example.com"
+      },
+      "required": true
+    },
+    {
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "Password",
+        "fr": "Mot de passe",
+        "de": "Passwort",
+        "es": "Contraseña"
+      },
+      "required": true
+    },
+    {
+      "key": "totp_secret",
+      "type": "secret",
+      "label": {
+        "en": "Authenticator secret key (ConEd, O&R)",
+        "fr": "Clé secrète d’authentification (ConEd, O&R)",
+        "de": "Geheimer Authenticator-Schlüssel (ConEd, O&R)",
+        "es": "Clave secreta de autenticación (ConEd, O&R)"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Only for ConEd and O&R accounts with two-step sign-in by authenticator app: the key shown when you set the app up.",
+        "fr": "Seulement pour les comptes ConEd et O&R à double authentification par application : la clé affichée lors de son installation.",
+        "de": "Nur für ConEd- und O&R-Konten mit Zwei-Faktor-Anmeldung per Authenticator-App: der beim Einrichten angezeigte Schlüssel.",
+        "es": "Solo para cuentas de ConEd y O&R con verificación en dos pasos por aplicación: la clave mostrada al configurarla."
+      },
+      "required": false
+    },
+    {
+      "key": "history_days",
+      "type": "select",
+      "label": {
+        "en": "History to import",
+        "fr": "Historique à importer",
+        "de": "Zu importierender Verlauf",
+        "es": "Historial que importar"
+      },
+      "description": {
+        "en": "Electricity days sent to the Gladys energy tracking on the first reading.",
+        "fr": "Jours d’électricité envoyés au suivi d’énergie de Gladys à la première lecture.",
+        "de": "Stromtage, die beim ersten Lesen an die Energieüberwachung von Gladys gehen.",
+        "es": "Días de electricidad enviados al seguimiento de energía de Gladys en la primera lectura."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "30",
+      "options": [
+        {
+          "value": "7",
+          "label": {
+            "en": "7 days",
+            "fr": "7 jours",
+            "de": "7 Tage",
+            "es": "7 días"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "30 days",
+            "fr": "30 jours",
+            "de": "30 Tage",
+            "es": "30 días"
+          }
+        },
+        {
+          "value": "90",
+          "label": {
+            "en": "90 days",
+            "fr": "90 jours",
+            "de": "90 Tage",
+            "es": "90 días"
+          }
+        },
+        {
+          "value": "365",
+          "label": {
+            "en": "1 year",
+            "fr": "1 an",
+            "de": "1 Jahr",
+            "es": "1 año"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language of device names",
+        "fr": "Langue des noms d’appareils",
+        "de": "Sprache der Gerätenamen",
+        "es": "Idioma de los nombres de dispositivos"
+      },
+      "description": {
+        "en": "Names are set when you add a meter to Gladys.",
+        "fr": "Les noms sont fixés à l’ajout d’un compteur dans Gladys.",
+        "de": "Die Namen werden beim Hinzufügen eines Zählers zu Gladys festgelegt.",
+        "es": "Los nombres se fijan al añadir un contador a Gladys."
+      },
+      "required": false,
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
+    },
+    {
+      "key": "code_help",
+      "type": "section",
+      "label": {
+        "en": "Verification code (PG&E, Exelon)",
+        "fr": "Code de vérification (PG&E, Exelon)",
+        "de": "Bestätigungscode (PG&E, Exelon)",
+        "es": "Código de verificación (PG&E, Exelon)"
+      },
+      "description": {
+        "en": "PG&E and the Exelon companies (ComEd, PECO, BGE, Pepco, Delmarva, ACE) may ask for a code sent by email or text: use the two actions below, “Send the verification code” then “Enter the code”. The sign-in is then remembered.",
+        "fr": "PG&E et les sociétés Exelon (ComEd, PECO, BGE, Pepco, Delmarva, ACE) peuvent demander un code envoyé par e-mail ou SMS : utilisez les deux actions ci-dessous, « Envoyer le code de vérification » puis « Saisir le code ». La connexion est ensuite mémorisée.",
+        "de": "PG&E und die Exelon-Gesellschaften (ComEd, PECO, BGE, Pepco, Delmarva, ACE) können einen per E-Mail oder SMS gesendeten Code verlangen: nutze die zwei Aktionen unten, „Bestätigungscode senden“ und dann „Code eingeben“. Die Anmeldung wird danach gespeichert.",
+        "es": "PG&E y las empresas de Exelon (ComEd, PECO, BGE, Pepco, Delmarva, ACE) pueden pedir un código enviado por correo o SMS: use las dos acciones de abajo, «Enviar el código de verificación» y luego «Introducir el código». El inicio de sesión queda guardado."
+      }
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "send_code",
+      "label": {
+        "en": "Send the verification code",
+        "fr": "Envoyer le code de vérification",
+        "de": "Bestätigungscode senden",
+        "es": "Enviar el código de verificación"
+      },
+      "description": {
+        "en": "Asks your utility to send the sign-in code (PG&E, Exelon companies).",
+        "fr": "Demande à votre fournisseur d’envoyer le code de connexion (PG&E, sociétés Exelon).",
+        "de": "Bittet deinen Versorger, den Anmeldecode zu senden (PG&E, Exelon-Gesellschaften).",
+        "es": "Pide a su compañía que envíe el código de inicio de sesión (PG&E, empresas de Exelon)."
+      },
+      "timeout_seconds": 60,
       "fields": [
         {
-          "key": "device",
+          "key": "method",
           "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Send by",
+            "fr": "Envoyer par",
+            "de": "Senden per",
+            "es": "Enviar por"
+          },
+          "required": true,
+          "options": [
+            {
+              "value": "email",
+              "label": {
+                "en": "Email",
+                "fr": "E-mail",
+                "de": "E-Mail",
+                "es": "Correo electrónico"
+              }
+            },
+            {
+              "value": "sms",
+              "label": {
+                "en": "Text message",
+                "fr": "SMS",
+                "de": "SMS",
+                "es": "SMS"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "submit_code",
+      "label": {
+        "en": "Enter the code",
+        "fr": "Saisir le code",
+        "de": "Code eingeben",
+        "es": "Introducir el código"
+      },
+      "description": {
+        "en": "Checks the code you received; the sign-in is then remembered.",
+        "fr": "Vérifie le code reçu ; la connexion est ensuite mémorisée.",
+        "de": "Prüft den erhaltenen Code; die Anmeldung wird danach gespeichert.",
+        "es": "Comprueba el código recibido; el inicio de sesión queda guardado."
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "code",
+          "type": "string",
+          "label": {
+            "en": "Verification code",
+            "fr": "Code de vérification",
+            "de": "Bestätigungscode",
+            "es": "Código de verificación"
+          },
+          "placeholder": {
+            "en": "e.g. 123456",
+            "fr": "ex. 123456",
+            "de": "z. B. 123456",
+            "es": "p. ej. 123456"
+          },
           "required": true
         }
       ]
+    },
+    {
+      "key": "refresh_now",
+      "label": {
+        "en": "Sign in and refresh now",
+        "fr": "Se connecter et rafraîchir",
+        "de": "Anmelden und jetzt aktualisieren",
+        "es": "Iniciar sesión y actualizar"
+      },
+      "description": {
+        "en": "Signs in and reads the meters now, instead of waiting for the 12-hour cycle.",
+        "fr": "Se connecte et lit les compteurs maintenant, sans attendre le cycle de 12 heures.",
+        "de": "Meldet sich an und liest die Zähler jetzt, statt auf den 12-Stunden-Zyklus zu warten.",
+        "es": "Inicia sesión y lee los contadores ahora, sin esperar al ciclo de 12 horas."
+      },
+      "timeout_seconds": 120
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "daily_usage_available",
+      "label": {
+        "en": "New day of usage available",
+        "fr": "Nouvelle journée de consommation",
+        "de": "Neuer Verbrauchstag verfügbar",
+        "es": "Nuevo día de consumo disponible"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "The utility published a new complete day for a meter (often a day or two late).",
+        "fr": "Le fournisseur a publié une nouvelle journée complète pour un compteur (souvent avec un ou deux jours de retard).",
+        "de": "Der Versorger hat einen neuen vollständigen Tag für einen Zähler veröffentlicht (oft ein bis zwei Tage später).",
+        "es": "La compañía publicó un nuevo día completo para un contador (a menudo con uno o dos días de retraso)."
       },
       "fields": [
         {
-          "key": "device",
+          "key": "meter",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Meter",
+            "fr": "Compteur",
+            "de": "Zähler",
+            "es": "Contador"
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "date",
+          "type": "string",
+          "label": {
+            "en": "Day (YYYY-MM-DD)",
+            "fr": "Jour (AAAA-MM-JJ)",
+            "de": "Tag (JJJJ-MM-TT)",
+            "es": "Día (AAAA-MM-DD)"
+          }
         },
         {
-          "key": "target",
+          "key": "usage",
+          "type": "number",
+          "label": {
+            "en": "Usage of the day",
+            "fr": "Consommation du jour",
+            "de": "Verbrauch des Tages",
+            "es": "Consumo del día"
+          }
+        },
+        {
+          "key": "unit",
+          "type": "string",
+          "label": {
+            "en": "Unit",
+            "fr": "Unité",
+            "de": "Einheit",
+            "es": "Unidad"
+          }
+        },
+        {
+          "key": "cost",
+          "type": "number",
+          "label": {
+            "en": "Cost of the day ($)",
+            "fr": "Coût du jour ($)",
+            "de": "Kosten des Tages ($)",
+            "es": "Coste del día ($)"
+          }
+        },
+        {
+          "key": "month_usage",
+          "type": "number",
+          "label": {
+            "en": "Usage of the month",
+            "fr": "Consommation du mois",
+            "de": "Verbrauch des Monats",
+            "es": "Consumo del mes"
+          }
+        },
+        {
+          "key": "month_cost",
+          "type": "number",
+          "label": {
+            "en": "Cost of the month ($)",
+            "fr": "Coût du mois ($)",
+            "de": "Kosten des Monats ($)",
+            "es": "Coste del mes ($)"
+          }
+        },
+        {
+          "key": "forecast_cost",
+          "type": "number",
+          "label": {
+            "en": "Bill forecast ($)",
+            "fr": "Prévision de facture ($)",
+            "de": "Rechnungsprognose ($)",
+            "es": "Previsión de factura ($)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "sign_in_required",
+      "label": {
+        "en": "Utility sign-in needs you",
+        "fr": "Connexion au fournisseur à refaire",
+        "de": "Anmeldung beim Versorger nötig",
+        "es": "Hay que volver a iniciar sesión"
+      },
+      "description": {
+        "en": "The utility asks for a verification code, or refused the password: the readings stop until you act.",
+        "fr": "Le fournisseur demande un code de vérification ou refuse le mot de passe : les relevés s’arrêtent jusqu’à votre intervention.",
+        "de": "Der Versorger verlangt einen Bestätigungscode oder lehnt das Passwort ab: die Ablesungen stoppen, bis du handelst.",
+        "es": "La compañía pide un código de verificación o rechaza la contraseña: las lecturas se detienen hasta que usted actúe."
+      },
+      "fields": [
+        {
+          "key": "reason",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "code",
+              "label": {
+                "en": "Verification code",
+                "fr": "Code de vérification",
+                "de": "Bestätigungscode",
+                "es": "Código de verificación"
+              }
+            },
+            {
+              "value": "password",
+              "label": {
+                "en": "Password refused",
+                "fr": "Mot de passe refusé",
+                "de": "Passwort abgelehnt",
+                "es": "Contraseña rechazada"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "utility",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Utility",
+            "fr": "Fournisseur",
+            "de": "Versorger",
+            "es": "Compañía"
+          }
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "label": {
+            "en": "Reason",
+            "fr": "Raison",
+            "de": "Grund",
+            "es": "Motivo"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "get_meter_summary",
+      "label": {
+        "en": "Read a meter summary",
+        "fr": "Lire le bilan d’un compteur",
+        "de": "Zählerübersicht lesen",
+        "es": "Leer el resumen de un contador"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Gives the last complete day, the month and the bill forecast of a meter, for a message.",
+        "fr": "Donne le dernier jour complet, le mois et la prévision de facture d’un compteur, pour un message.",
+        "de": "Liefert den letzten vollständigen Tag, den Monat und die Rechnungsprognose eines Zählers, für eine Nachricht.",
+        "es": "Da el último día completo, el mes y la previsión de factura de un contador, para un mensaje."
+      },
+      "timeout_seconds": 10,
       "fields": [
         {
-          "key": "device",
+          "key": "meter",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Meter",
+            "fr": "Compteur",
+            "de": "Zähler",
+            "es": "Contador"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "date",
+          "type": "string",
+          "label": {
+            "en": "Last complete day",
+            "fr": "Dernier jour complet",
+            "de": "Letzter vollständiger Tag",
+            "es": "Último día completo"
+          }
+        },
+        {
+          "key": "usage",
+          "type": "number",
+          "label": {
+            "en": "Usage of that day",
+            "fr": "Consommation de ce jour",
+            "de": "Verbrauch dieses Tages",
+            "es": "Consumo de ese día"
+          }
+        },
+        {
+          "key": "unit",
+          "type": "string",
+          "label": {
+            "en": "Unit",
+            "fr": "Unité",
+            "de": "Einheit",
+            "es": "Unidad"
+          }
+        },
+        {
+          "key": "cost",
+          "type": "number",
+          "label": {
+            "en": "Cost of that day ($)",
+            "fr": "Coût de ce jour ($)",
+            "de": "Kosten dieses Tages ($)",
+            "es": "Coste de ese día ($)"
+          }
+        },
+        {
+          "key": "month_usage",
+          "type": "number",
+          "label": {
+            "en": "Usage of the month",
+            "fr": "Consommation du mois",
+            "de": "Verbrauch des Monats",
+            "es": "Consumo del mes"
+          }
+        },
+        {
+          "key": "month_cost",
+          "type": "number",
+          "label": {
+            "en": "Cost of the month ($)",
+            "fr": "Coût du mois ($)",
+            "de": "Kosten des Monats ($)",
+            "es": "Coste del mes ($)"
+          }
+        },
+        {
+          "key": "forecast_cost",
+          "type": "number",
+          "label": {
+            "en": "Bill forecast ($)",
+            "fr": "Prévision de facture ($)",
+            "de": "Rechnungsprognose ($)",
+            "es": "Previsión de factura ($)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "energy_summary",
+      "label": {
+        "en": "Utility energy summary",
+        "fr": "Bilan énergie fournisseur",
+        "de": "Energieübersicht Versorger",
+        "es": "Resumen de energía"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Last day, this month and bill forecast of a utility meter.",
+        "fr": "Dernier jour, mois en cours et prévision de facture d’un compteur.",
+        "de": "Letzter Tag, dieser Monat und Rechnungsprognose eines Zählers.",
+        "es": "Último día, este mes y previsión de factura de un contador."
+      },
+      "icon": "zap",
+      "settings": [
+        {
+          "key": "meter",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Meter",
+            "fr": "Compteur",
+            "de": "Zähler",
+            "es": "Contador"
+          },
+          "description": {
+            "en": "The first electricity meter when empty.",
+            "fr": "Le premier compteur d’électricité si vide.",
+            "de": "Der erste Stromzähler, wenn leer.",
+            "es": "El primer contador de electricidad si está vacío."
+          }
+        }
+      ]
     }
   ]
 }

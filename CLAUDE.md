@@ -11,13 +11,19 @@ Gladys through
 [`@gladysassistant/integration-sdk`](https://github.com/GladysAssistant/integration-sdk-js),
 its only runtime dependency. It started from the official JavaScript template.
 
+This one reads the electricity and gas meters of US utilities served by
+Opower (Oracle): it signs in to the utility's website, gets an Opower token,
+and calls the Opower API. Electricity feeds the Gladys 5.2 energy tracking
+through dated consumption (`publishEnergyConsumption`).
+
 ## Commands
 
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/app.test.js              # one file
+node --test --test-name-pattern "PG&E"    # tests whose name matches
+node scripts/probe.mjs                    # live sites, read-only (needs Internet)
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -31,16 +37,24 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
-src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+index.js                          SDK wiring only: createApp + registerHandlers, then connect()
+src/app.js                        the cycle (sign in, read, publish), code actions, widget, scene action
+src/poller.js                     the container's 12-hour timer; the core's onPoll is a fallback
+src/utilities/index.js            registry of the supported utilities (keys are config values: forever)
+src/utilities/<company>.js        one sign-in flow per family (pge, coned, exelon, aep, pse, duquesne)
+src/utilities/forms.js            the little HTML reading the sign-in pages need
+src/opower/client.js              Opower API: accounts, GraphQL forecast, windowed reads, cost fallback
+src/summary.js                    pure: hourly reads → half hours, daily reads → days, summaries, gas m³
+src/meters.js                     one device per meter, feature keys, summary states
+src/widgets.js                    the "energy_summary" widget content (pure)
+src/http.js                       session with a cookie jar and manual redirects (fetch injected)
+src/time.js, src/totp.js          zone arithmetic without a library; RFC 6238 codes (ConEd, O&R)
+src/store.js                      /data/opower-state.json (0600): sign-in data, per-meter cursor
+src/i18n.js, src/config.js        texts in four languages; DEFAULT_CONFIG mirrors the manifest
+scripts/probe.mjs                 checks the live sign-ins read-only (made-up account, or a real one)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
-test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys, same sections
+test/                             node --test, SDK fake Gladys + test/helpers/fake-web.js (no network)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +84,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in four languages (English, French, German with
+  "du", Spanish with "usted"): action messages, manifest texts, widget texts,
+  feature names, and `docs/en.md`, `docs/fr.md`, `docs/de.md`, `docs/es.md`
+  with the same sections. `test/i18n.test.js` enforces it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -197,6 +213,69 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## Intégration Opower : API et pièges (vérifiés dans le code)
+
+**Sources.** Les connexions et l'API sont portées de `tronikos/opower` (Apache-2.0) : un module par
+famille (`src/utilities/`), seulement ce que l'intégration utilise (`src/opower/client.js` : comptes,
+prévision GraphQL, lectures `DataBrowser-v1`). Les fournisseurs non portés sont listés dans `NOT_YET`
+et dans les quatre docs (le test i18n le vérifie). Les hôtes des fournisseurs et `*.opower.com` sont
+refusés par le proxy des sessions de code : `scripts/probe.mjs` éprouve les vrais sites depuis une
+machine qui a le réseau (faux compte → refus propre attendu ; vrai compte → comptage, rien de
+personnel affiché).
+
+**Suivi d'énergie (cœur 5.2.0+).**
+
+- Données en retard de 24-48 h : **aucun index cumulé** (`energy-sensor/index` ou `energy`, que le
+  cœur transforme en consommation au fil de l'eau : un jour tardif tomberait dans une demi-heure).
+  L'électricité publie une consommation datée par `publishEnergyConsumption` (POST
+  `/energy/consumption`, présent depuis v5.2.0) sur `energy-sensor/thirty-minutes-consumption`
+  (lectures horaires coupées en deux moitiés, pratique recommandée par le cœur) ou
+  `daily-consumption` (compteur lu au jour). Contraintes du cœur : créneau aligné sur le fuseau de
+  Gladys, intervalle écoulé, `kwh ≥ 0`, 2 000 par appel, 5 ans au plus, **404 tant que l'appareil
+  n'est pas créé** : republier dans `onDeviceCreated`. Upsert par instant : renvoyer les 3 derniers
+  jours à chaque cycle est sans coût (le cœur n'écrit que ce qui change).
+- Le cœur dérive la fonctionnalité de coût (`<external_id>_cost`) et **rattache la consommation au
+  compteur électrique principal** si elle n'a pas de parent : une consommation de gaz s'ajouterait
+  à l'électricité, et les contrats 5.2.1 ne valorisent que l'électricité. Le gaz n'a donc pas de
+  fonctionnalité de consommation.
+- Les bilans (dernier jour, mois, prévision) ne doivent **pas** être d'un type consommation
+  (`daily-consumption` serait compté deux fois) ni index : `energy-sensor/index-yesterday` (kWh,
+  ignoré par la logique du cœur, libellé « Index hier » seulement quand il est seul de son type ;
+  ici ils sont trois, les noms publiés s'affichent), `volume-sensor/decimal` en m³ pour le gaz,
+  `currency/decimal` en `dollar` pour les coûts.
+- Gladys n'a **ni therm ni CCF** : CCF → m³ exact (× 2,8317), therm → m³ par le pouvoir
+  calorifique moyen américain (1 037 Btu/pi³, EIA, × 2,7307). Le dire dans les docs.
+- Net metering : une heure d'injection est négative chez Opower, refusée par le cœur → publiée à 0
+  dans le suivi d'énergie ; les bilans gardent le net.
+- Le faux Gladys du SDK tourne en UTC : une `date` journalière y est lue comme minuit UTC.
+
+**Connexions.**
+
+- PG&E : actions Apex « Aura » ; `verifymfa :` demande un code (options e-mail/SMS, parfois aucune :
+  le code est déjà parti). Le code validé rend deux cookies qui évitent le code ensuite (`/data`).
+- Exelon (ComEd, PECO, BGE, Pepco, Delmarva, ACE) : flux Azure B2C de l'appli mobile, **code
+  toujours demandé la première fois**, puis jetons de rafraîchissement. Azure fait tourner le jeton
+  à chaque usage : on sauve le nouveau à chaque connexion (la bibliothèque Python garde l'ancien).
+  Pepco/Delmarva : sous-domaine Opower `pep`/`dpl` pour un logement du Maryland, `pepd`/`dpld`
+  sinon. Les `SETTINGS`/`SA_FIELDS` se lisent par une regex **sur une ligne** (`var X = {...};`) :
+  dans les fausses pages des tests, une balise par ligne.
+- ConEd / O&R : cookies **non quotés** (coned.com refuse un `CE_DEVICE_ID` quoté), cookie
+  d'appareil gardé dans `/data` ; double authentification par **clé TOTP** (champ `secret` de la
+  config, jamais d'action : #3154), codes calculés par `src/totp.js` (vecteurs RFC 6238 testés).
+- AEP : formulaire ASP.NET aux noms générés, tous les `<input>` renvoyés ; vider les cookies
+  `opower.com` avant une nouvelle connexion. PSE : jeton anti-falsification puis jeton dans un
+  `<script>`. Duquesne : derrière Incapsula, en-têtes de navigation.
+- Un nouveau login **annule le code envoyé** : le cycle de 12 h saute la connexion tant qu'un code
+  est attendu (10 min). Les actions « Envoyer le code » / « Saisir le code » portent le défi en
+  mémoire (même session HTTP).
+- API Opower : fenêtres de 363 jours (jour), 26 (heure), 6 (demi/quart d'heure), du plus récent au
+  plus ancien ; `endDate` servi comme un jour entier ; l'endpoint de coût peut répondre 500 (ConEd)
+  ou vide (PG&E) → repli sur l'endpoint d'usage, sans coût. Supprimer les lectures nulles finales
+  (heures pas encore relevées).
+
+**SDK.** Le faux Gladys acquitte une action par `{ message }` et une action de scène par
+`{ outputs }` : les tests lisent `ack.data.message` / `ack.data.outputs`.
 
 ## Store
 

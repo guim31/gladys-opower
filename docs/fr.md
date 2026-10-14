@@ -1,67 +1,288 @@
-# Template de démonstration
+# Opower (US utilities)
 
-Ceci est la documentation utilisateur de l'intégration. Gladys ré-héberge ce
-fichier et affiche un lien **Documentation** permanent vers lui dans l'écran
-de configuration (dans la langue de l'utilisateur, avec l'anglais en repli) —
-c'est au moment de configurer que l'utilisateur en a le plus besoin. Gardez
-les courtes indications d'accueil dans les blocs `section` du `config_schema`
-du manifest ; mettez ici le pas-à-pas détaillé (captures d'écran, dépannage…).
+Amène dans Gladys la consommation d'électricité et de gaz de votre compte chez
+un fournisseur américain : la consommation de la veille, du mois en cours, son
+coût, et la prévision de facture de la période de facturation. L'électricité
+alimente aussi le **suivi d'énergie** de Gladys 5.2, heure par heure, à
+l'heure où elle a vraiment été consommée.
 
-## Ce que vous obtenez
+De nombreux fournisseurs américains affichent votre consommation par la même
+plateforme, Opower (Oracle). Cette intégration se connecte au site de votre
+fournisseur avec votre propre compte, comme le fait son application mobile.
 
-Six appareils de démonstration apparaissent après l'installation : une
-station météo (vraies données Open-Meteo), un interrupteur, une lampe
-variable, une prise connectée avec mesure de puissance, un détecteur de
-mouvement et une caméra.
+> Sans lien avec Oracle Opower ni avec les fournisseurs. **Developed without
+> the hardware: feedback welcome** — développée sans compteur ni compte : vos
+> retours sont les bienvenus (issues GitHub ou forum Gladys). Les connexions
+> sont portées de la bibliothèque libre utilisée par Home Assistant, mais
+> n'ont pas pu être essayées sur les vrais sites.
+
+## Présentation
+
+- Un appareil Gladys par compteur : électricité et gaz, si votre compte a les
+  deux.
+- **Électricité** : la consommation, datée heure par heure (ou jour par jour),
+  part dans le suivi d'énergie de Gladys ; plus le dernier jour complet, le
+  mois en cours et la prévision de facture, en kWh et en dollars.
+- **Gaz** : les mêmes bilans, en mètres cubes (m³) et en dollars.
+- Un widget de tableau de bord, deux déclencheurs de scène et une action de
+  scène.
+- Les données sont lues toutes les 12 heures. Les fournisseurs les publient
+  avec un ou deux jours de retard.
+
+## Fournisseurs pris en charge
+
+La connexion diffère pour chaque fournisseur. Ceux-ci sont pris en charge :
+
+| Fournisseur                                  | Connexion                                                                           |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| AEP Ohio                                     | identifiant et mot de passe                                                         |
+| AEP Texas                                    | identifiant et mot de passe                                                         |
+| Appalachian Power                            | identifiant et mot de passe                                                         |
+| Atlantic City Electric                       | code de vérification (e-mail ou SMS)                                                |
+| Baltimore Gas and Electric (BGE)             | code de vérification (e-mail ou SMS)                                                |
+| Commonwealth Edison (ComEd)                  | code de vérification (e-mail ou SMS)                                                |
+| Consolidated Edison (ConEd)                  | mot de passe, et la clé d'authentification si la double authentification est active |
+| Delmarva Power                               | code de vérification (e-mail ou SMS)                                                |
+| Duquesne Light Company (DQE)                 | identifiant et mot de passe                                                         |
+| Indiana Michigan Power                       | identifiant et mot de passe                                                         |
+| Kentucky Power                               | identifiant et mot de passe                                                         |
+| Orange & Rockland Utilities (O&R)            | mot de passe, et la clé d'authentification si la double authentification est active |
+| Pacific Gas and Electric Company (PG&E)      | mot de passe, parfois un code de vérification (e-mail ou SMS)                       |
+| PECO Energy Company (PECO)                   | code de vérification (e-mail ou SMS)                                                |
+| Potomac Electric Power Company (Pepco)       | code de vérification (e-mail ou SMS)                                                |
+| Public Service Company of Oklahoma (PSO)     | identifiant et mot de passe                                                         |
+| Puget Sound Energy (PSE)                     | identifiant et mot de passe                                                         |
+| Southwestern Electric Power Company (SWEPCO) | identifiant et mot de passe                                                         |
+
+### Pas encore pris en charge
+
+Ces fournisseurs Opower sont connus de la bibliothèque de référence mais pas
+encore portés : AES Indiana, Burbank Water and Power (BWP), Clark Public
+Utilities, City of Austin Utilities, Evergy, Eversource, Glendale Water and
+Power (GWP), Northern Indiana Public Service Company (NIPSCO), Rhode Island
+Energy, Seattle City Light (SCL), Southern Maryland Electric Cooperative
+(SMECO), Sacramento Municipal Utility District (SMUD), Southwest Gas. Duke
+Energy et Portland General Electric ne sont pas non plus servis par la
+bibliothèque de référence. Demandez le vôtre sur GitHub : chacun a sa propre
+connexion.
+
+## Prérequis
+
+- Gladys 5.2.0 ou plus récent.
+- Un compte en ligne chez votre fournisseur (celui de son site), avec un
+  compteur communicant pour l'électricité heure par heure. Sans compteur
+  communicant, le fournisseur ne sert que des chiffres journaliers ou
+  mensuels.
+- Gladys doit accéder à Internet (le site du fournisseur et opower.com).
 
 ## Configuration
 
-1. Ouvrez l'onglet **Configuration** de l'intégration.
-2. Renseignez la **latitude** et la **longitude** que la station météo de
-   démonstration doit observer (Paris par défaut), et choisissez votre unité
-   de température. L'**intervalle de rafraîchissement** règle la fréquence
-   de lecture de la station météo et de la puissance de la prise : toutes
-   les 5 minutes par défaut, toutes les minutes au plus.
-3. Enregistrez : les appareils apparaissent dans l'onglet **Découverte**,
-   prêts à être ajoutés.
+1. Dans **Intégrations → Installer depuis GitHub**, installez
+   `https://github.com/guim31/gladys-opower`.
+2. Dans l'onglet **Configuration**, choisissez votre **fournisseur**, saisissez
+   l'**identifiant** (ou l'e-mail) et le **mot de passe** de son site.
+3. Choisissez l'**historique à importer** : les jours d'électricité envoyés au
+   suivi d'énergie à la première lecture (30 jours par défaut, jusqu'à un an). L'augmenter plus tard importe l'historique plus long à la lecture suivante.
+4. Choisissez la **langue des noms d'appareils** (français par défaut) : les
+   noms sont fixés à l'ajout d'un compteur.
+5. Enregistrez. L'intégration se connecte, puis liste vos compteurs dans
+   l'onglet **Découverte** : ajoutez-les.
 
-Le réglage **Préférer la connexion locale** pilote la prise de
-démonstration : elle affiche en badge le canal réellement utilisé (local ou
-cloud), avec un point orange quand elle fonctionne en mode dégradé (local
-refusé, bascule cloud).
+L'action **Se connecter et rafraîchir** lit tout tout de suite au lieu
+d'attendre le prochain cycle de 12 heures (pas plus d'une fois par quart
+d'heure).
 
-## Actions
+### Code de vérification (PG&E, Exelon)
 
-- **Tester le fournisseur météo** — effectue une requête en direct vers
-  Open-Meteo et affiche la température et l'humidité actuelles sous le
-  bouton.
-- **Identifier un appareil** — choisissez un de vos appareils dans la liste
-  et il se signale (la lampe de démonstration « clignote » dans les logs).
+PG&E et les sociétés Exelon (ComEd, PECO, BGE, Pepco, Delmarva, Atlantic City
+Electric) peuvent demander un code envoyé par e-mail ou SMS. L'écran de
+configuration affiche alors « Code de vérification requis » et liste où le
+code peut partir.
 
-## Scènes
+1. Utilisez l'action **Envoyer le code de vérification**, et choisissez
+   **E-mail** ou **SMS**.
+2. Quand le code arrive, utilisez **Saisir le code** dans les 10 minutes.
 
-L'intégration ajoute ses propres cartes à l'éditeur de scènes (Gladys 5.1
-ou plus récent), dans la catégorie **Intégrations** :
+L'intégration garde alors ce que le fournisseur donne pour reconnaître cet
+appareil (dans `/data`), et les connexions suivantes n'ont plus besoin de
+code. Les sociétés Exelon demandent toujours un code la première fois, puis
+donnent un jeton renouvelé à chaque lecture ; si elles ne l'acceptent plus
+(après un long arrêt), un nouveau code est demandé. Le déclencheur de scène
+**Connexion au fournisseur à refaire** vous prévient.
 
-- **Mouvement détecté** (déclencheur) — lance la scène quand un détecteur
-  de démonstration voit bouger quelque chose. Choisissez éventuellement le
-  détecteur et ce qui a bougé (personne, animal) ; laissés vides, toute
-  détection correspond. Les actions suivantes peuvent lire ce qui a bougé
-  avec `{{triggerEvent.data.target}}`.
-- **Identifier un appareil** (action) — fait se signaler l'appareil choisi.
-  Elle indique si l'appareil a pu se signaler, pour que les actions
-  suivantes puissent en dépendre.
+### Clé d'authentification (ConEd, O&R)
 
-## Tableau de bord
+Les comptes ConEd et O&R à double authentification par application ont besoin
+de la **clé secrète d'authentification** : la clé en texte affichée lors de
+l'installation de l'application (pas un code à 6 chiffres). L'intégration
+calcule les codes elle-même. Si vous n'avez plus la clé, réinstallez la double
+authentification sur coned.com et copiez la clé qu'il affiche.
 
-Ajoutez le widget **État de la démo** à un tableau de bord : il affiche en
-direct la température de la station météo et la puissance de la prise du
-bureau, la connexion utilisée par la prise (en orange si dégradée) et la
-position observée. Son bouton **Identifier la lampe** fait se signaler la
-lampe de démonstration.
+## Appareils
+
+Chaque compteur est un appareil nommé d'après le fournisseur, le type de
+compteur et les derniers chiffres du compte, par exemple « PG&E Électricité
+…0003 ».
+
+### Compteur d'électricité
+
+| Fonctionnalité                | Unité | Ce que c'est                                                                                               |
+| ----------------------------- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| Consommation                  | kWh   | La consommation par 30 minutes, datée, pour le suivi d'énergie (lectures horaires coupées en deux moitiés) |
+| Consommation journalière      | kWh   | À la place de la précédente, pour un compteur lu au jour                                                   |
+| Consommation du dernier jour  | kWh   | Le dernier jour complet publié par le fournisseur                                                          |
+| Coût du dernier jour          | $     | Son coût, quand le fournisseur donne les coûts                                                             |
+| Consommation du mois          | kWh   | Le mois calendaire en cours, jours complets seulement                                                      |
+| Coût du mois                  | $     | Son coût, seulement quand chacun de ses jours a un coût                                                    |
+| Consommation prévue (facture) | kWh   | La consommation prévue par le fournisseur pour la période de facturation                                   |
+| Prévision de facture          | $     | La facture prévue par le fournisseur pour la période de facturation                                        |
+
+Un logement en autoconsommation (net metering, solaire) peut afficher une
+consommation négative un jour où il a injecté plus qu'il n'a consommé.
+
+### Compteur de gaz
+
+Les mêmes bilans, sans la fonctionnalité de consommation : dernier jour, mois
+et consommation prévue en m³, leurs coûts en dollars. Gladys n'a ni unité
+therm ni CCF, les volumes de gaz sont donc convertis :
+
+- CCF (100 pieds cubes) : × 2,832 m³, exact ;
+- therm (une unité d'énergie) : × 2,731 m³, par le pouvoir calorifique moyen
+  du gaz naturel livré aux foyers américains (1 037 Btu par pied cube, EIA).
+  Votre gaz peut différer de quelques pour cent : votre facture indique le
+  coefficient de votre fournisseur.
+
+## Suivi d'énergie
+
+Gladys 5.2 sait importer une consommation datée dans le passé : l'intégration
+envoie chaque demi-heure à son heure réelle, par le point d'entrée dédié du
+cœur, et renvoie les trois derniers jours à chaque lecture (les fournisseurs
+corrigent leurs données récentes ; Gladys n'écrit que ce qui change). Les
+graphiques d'énergie et le coût calculé d'après votre contrat sont donc justes
+même si les données arrivent avec un ou deux jours de retard.
+
+Aucun index cumulé n'est publié, volontairement : Gladys transformerait un
+index reçu avec un jour de retard en une seule demi-heure de consommation.
+
+Pour que Gladys calcule les coûts, choisissez la fonctionnalité
+**Consommation** de votre compteur d'électricité comme compteur principal dans
+les réglages d'énergie et créez-y votre contrat. Les fonctionnalités
+**Prévision de facture** et **coût** viennent de votre fournisseur et ne
+dépendent pas de ce contrat.
+
+Le gaz n'est pas envoyé au suivi d'énergie : Gladys 5.2 ne valorise que
+l'électricité, et une consommation de gaz s'ajouterait à l'électricité.
+
+## Widget de tableau de bord
+
+**Bilan énergie fournisseur** affiche, pour un compteur (le premier compteur
+d'électricité si vous n'en choisissez pas) : le dernier jour complet et sa
+date, le mois en cours, le coût du mois, la prévision de facture (orange
+quand elle dépasse la même période l'an dernier), les 14 derniers jours en
+barres, et le coût du dernier jour, la consommation prévue, le chiffre de
+l'an dernier et la période de facturation. Quand la connexion vous attend, le
+widget dit pourquoi.
+
+## Déclencheurs et action de scène
+
+- **Nouvelle journée de consommation** (déclencheur) : le fournisseur a publié
+  une nouvelle journée complète pour un compteur, souvent avec un ou deux
+  jours de retard. Choisissez éventuellement le compteur. Variables : le jour
+  (`date`, AAAA-MM-JJ), sa consommation, son unité et son coût, la
+  consommation et le coût du mois, la prévision de facture. Déclenché une fois
+  par nouveau jour ; la première lecture après l'installation ne fait que
+  fixer le point de départ.
+- **Connexion au fournisseur à refaire** (déclencheur) : le fournisseur
+  demande un code de vérification, ou refuse le mot de passe. Les relevés
+  s'arrêtent jusqu'à votre intervention. Filtrez éventuellement sur la raison
+  (code, mot de passe). Déclenché une fois par problème.
+- **Lire le bilan d'un compteur** (action) : donne le dernier jour complet, sa
+  consommation et son coût, la consommation et le coût du mois et la
+  prévision de facture d'un compteur, pour les actions suivantes de la scène.
+  Un chiffre inconnu reste vide.
+
+## Exemples de scènes
+
+- **Bilan quotidien** : déclencheur _Nouvelle journée de consommation_
+  (compteur d'électricité) → envoyer un message « {{triggerEvent.data.date}} :
+  {{triggerEvent.data.usage}} kWh, {{triggerEvent.data.cost}} $. Facture
+  prévue : {{triggerEvent.data.forecast_cost}} $. »
+- **Surveillance de la facture** : déclencheur _Nouvelle journée de
+  consommation_, condition sur la fonctionnalité **Prévision de facture**
+  supérieure à votre budget → notification.
+- **Ne pas perdre les données** : déclencheur _Connexion au fournisseur à
+  refaire_ → envoyer un message « Opower attend un code de vérification :
+  ouvrir Intégrations → Opower ».
+- **Bilan hebdomadaire** : une scène planifiée chaque semaine → _Lire le bilan
+  d'un compteur_ → envoyer le coût du mois et la prévision dans un message.
+
+## Rafraîchissement et quotas
+
+- Une lecture toutes les 12 heures (le rythme de l'intégration Home
+  Assistant), nouvel essai au bout d'une heure quand le fournisseur ne répond
+  pas. Chaque lecture se reconnecte (les sessions des fournisseurs durent
+  quelques minutes).
+- Une lecture coûte quelques requêtes par compteur : la consommation horaire
+  du mois (deux requêtes), les coûts journaliers (une), la prévision (une par
+  compte), et la connexion elle-même. La première lecture importe
+  l'historique choisi : jusqu'à 15 requêtes pour un an d'heures.
+- L'intégration s'interroge elle-même : elle ne dépend pas du sondage de
+  Gladys.
+- Les conditions d'utilisation du fournisseur s'appliquent à votre compte :
+  cette intégration ne lit que vos propres données, lentement.
 
 ## Dépannage
 
-L'intégration journalise tout ce qu'elle fait : consultez les logs de
-l'intégration depuis l'interface Gladys (ou `docker logs` sur l'hôte) avec
-`LOG_LEVEL=debug` pour le détail complet.
+- **« Le fournisseur refuse la connexion »** : vérifiez l'identifiant et le
+  mot de passe sur le site du fournisseur. Un compte ConEd/O&R a aussi besoin
+  de la clé d'authentification. Trop d'échecs peuvent bloquer le compte chez
+  le fournisseur.
+- **« Code de vérification requis »** : voir _Code de vérification_
+  ci-dessus. Le cycle de 12 heures ne redemande pas de code pendant qu'un code
+  est attendu (10 minutes).
+- **« Fournisseur injoignable »** : le site ou opower.com n'a pas répondu ;
+  nouvel essai toutes les heures. Si cela dure, le fournisseur a peut-être
+  changé sa connexion : ouvrez une issue GitHub avec les journaux.
+- **Aucun compteur listé** : le compte n'a aucun compteur d'électricité ou de
+  gaz servi par Opower (l'eau n'est pas prise en charge).
+- **Le dernier jour date d'avant-hier** : normal, les fournisseurs publient
+  en retard.
+- **Journaux** : mettez `LOG_LEVEL=debug` pour voir chaque lecture. Les
+  journaux ne montrent jamais le mot de passe, les codes ni les jetons.
+
+## Limites
+
+- **Developed without the hardware: feedback welcome** — développée sans
+  compteur ni compte. Les connexions suivent la bibliothèque de référence et
+  ses tests, pas les sites réels : les premiers essais réels peuvent révéler
+  des différences.
+- Les données ont un ou deux jours de retard : pas de puissance instantanée,
+  pas de « aujourd'hui ».
+- Les lectures horaires sont coupées en deux demi-heures égales.
+- Autoconsommation : le suivi d'énergie compte une heure d'injection pour 0 ;
+  les bilans gardent les chiffres nets.
+- Le gaz est en m³ (therms convertis par une moyenne) et hors du suivi
+  d'énergie.
+- Plusieurs comptes : une connexion par intégration. Les sociétés Exelon ne
+  lisent que le compte par défaut de la connexion.
+- Les fonctionnalités de coût sont les chiffres du fournisseur, en dollars. Le
+  coût que Gladys calcule dans le suivi d'énergie vient du contrat que vous
+  créez dans Gladys, pas du fournisseur.
+- Les compteurs d'eau ne sont pas pris en charge.
+
+## Confidentialité et données
+
+Le mot de passe et la clé d'authentification restent dans la configuration de
+Gladys. Le fichier `/data/opower-state.json` garde ce qui évite le code de
+vérification (cookies d'appareil, jeton de rafraîchissement Exelon), et pour
+chaque compteur jusqu'où le suivi d'énergie a été alimenté. Il n'est lisible
+que par l'intégration. Rien n'est envoyé ailleurs qu'au site de votre
+fournisseur, à opower.com et à votre Gladys.
+
+## Crédits
+
+Les connexions et les appels à l'API Opower sont portés de
+[tronikos/opower](https://github.com/tronikos/opower) (Apache-2.0), la
+bibliothèque de l'[intégration Opower de Home Assistant](https://www.home-assistant.io/integrations/opower/)
+(Apache-2.0) ; ses tests ont fourni les formes de réponses utilisées dans les
+tests ici.

@@ -1,0 +1,36 @@
+{
+  "data": {
+    "billingAccountsConnection": {
+      "edges": [
+        {
+          "node": {
+            "billForecast": {
+              "timeInterval": "2026-07-30T00:00:00-07:00/2026-08-31T00:00:00-07:00",
+              "currentDateTime": "2026-08-15T00:00:00-07:00",
+              "segments": [
+                {
+                  "serviceAgreement": { "uuid": "22222222-2222-11e5-bf2b-000000000002" },
+                  "estimatedUsage": { "value": 500.0, "unit": "KWH" },
+                  "estimatedUsageCharges": { "value": 150.0 },
+                  "soFarUsage": { "value": 240.0 },
+                  "soFarUsageCharges": { "value": 72.0 },
+                  "priorYearUsage": { "value": 480.0 },
+                  "priorYearUsageCharges": { "value": 140.0 }
+                },
+                {
+                  "serviceAgreement": { "uuid": "33333333-3333-11e5-bf2b-000000000003" },
+                  "estimatedUsage": { "value": 12.0, "unit": "TH" },
+                  "estimatedUsageCharges": { "value": 30.0 },
+                  "soFarUsage": { "value": 6.0 },
+                  "soFarUsageCharges": { "value": 15.0 },
+                  "priorYearUsage": { "value": 11.0 },
+                  "priorYearUsageCharges": { "value": 28.0 }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "cost": {
+    "servicePointId": "9000000001",
+    "utilityAccountUuid": "22222222-2222-11e5-bf2b-000000000002",
+    "unit": "KWH",
+    "siteTimeZoneId": "America/Los_Angeles",
+    "reads": [],
+    "seriesComponents": [],
+    "ratePlans": [
+      {
+        "code": "HETOUC/NEM2/CCA",
+        "name": null,
+        "meterType": "ELEC",
+        "startDate": "2023-06-12T00:00:00.000-07:00",
+        "endDate": null,
+        "series": {}
+      }
+    ]
+  },
+  "usage": {
+    "startDate": "2026-08-25",
+    "endDate": "2026-08-27",
+    "reads": [
+      {
+        "startTime": "2026-08-25T00:00:00.000-07:00",
+        "endTime": "2026-08-26T00:00:00.000-07:00",
+        "providedCost": null,
+        "milesDriven": 25,
+        "demand": null,
+        "consumption": { "value": 15.0677, "type": "ACTUAL" },
+        "exported": null,
+        "grossConsumption": null,
+        "grossGeneration": null,
+        "imported": null,
+        "reactivePower": null
+      },
+      {
+        "startTime": "2026-08-26T00:00:00.000-07:00",
+        "endTime": "2026-08-27T00:00:00.000-07:00",
+        "providedCost": null,
+        "milesDriven": 19,
+        "demand": null,
+        "consumption": { "value": 11.4372, "type": "ACTUAL" },
+        "exported": null,
+        "grossConsumption": null,
+        "grossGeneration": null,
+        "imported": null,
+        "reactivePower": null
+      }
+    ]
+  }
+}
