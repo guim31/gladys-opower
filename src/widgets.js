@@ -1,169 +1,202 @@
 // -----------------------------------------------------------------------------
-// Dashboard widgets (SDK v0.14+, Gladys 5.1+).
+// The dashboard widget "Energy summary": the last complete day, the current
+// month and the bill forecast of one meter, with the last 14 days as bars.
 //
-// A widget puts the integration's own data on the Gladys dashboard without a
-// dedicated core widget. The manifest `widgets` field declares its identity
-// (key, label, icon, optional per-instance `settings`); at runtime the
-// integration returns a DECLARATIVE content — `text`, `value`, `gauge`,
-// `status`, `chart`, `card-list`, `image`, `button` — that the core renders
-// with its own theme, dark mode and translations. No HTML, no CSS.
-//
-// Each entry of WIDGETS is keyed by the widget `key` and exposes:
-//   - get(gladys, { settings, language, units, config }): the content,
-//     registered by index.js with `gladys.onWidgetGet(key, ...)`;
-//   - action(gladys, { actionKey, params, settings, config }) (optional): a
-//     tapped `button` carrying an `action`, registered with
-//     `gladys.onWidgetAction`.
-//
-// Check your contents in the tests with `validateWidgetContent` (exported by
-// the SDK, see test/widgets.test.js), or run with DEBUG=gladys-integration-sdk
-// to have the SDK log every violation of the vocabulary and the budget.
+// Built from what the last cycle read (no sign-in per display), localized
+// from the widget's language. Core budget: 8 components, 6 tiles, 2 texts,
+// 1 status list, 1 focal (the chart). The values are plain tiles (not bound
+// to a feature): the widget works before the meter is added to Gladys, and
+// the integration asks for a refresh after every cycle.
 // -----------------------------------------------------------------------------
 
 import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_TRANSPORTS,
+  WIDGET_CHART_TYPES,
   WIDGET_COLORS,
+  WIDGET_TEXT_VARIANTS,
 } from '@gladysassistant/integration-sdk';
-import { identifyDevice } from './devices/index.js';
-import { weatherStation } from './devices/weatherStation.js';
-import { plug } from './devices/plug.js';
-import { light } from './devices/light.js';
+import { startOfLocalDay } from './time.js';
 
-const logger = createLogger({ name: 'widgets' });
+// The data moves twice a day: an hour of cache is plenty.
+const TTL_SECONDS = 3600;
 
-// Widget key, as declared in the manifest `widgets` field.
-export const DEMO_STATUS_WIDGET = 'demo_status';
-
-// Keys of the `button` actions the demo_status content declares.
-const DEMO_STATUS_ACTIONS = { IDENTIFY_LIGHT: 'identify_light' };
-
-// How the plug transport reads in the status list.
-const TRANSPORT_STATUS = {
-  [DEVICE_TRANSPORTS.LOCAL]: { value: { en: 'Local', fr: 'Locale' }, color: WIDGET_COLORS.SUCCESS },
-  [DEVICE_TRANSPORTS.CLOUD]: { value: { en: 'Cloud', fr: 'Cloud' }, color: WIDGET_COLORS.INFO },
-  [DEVICE_TRANSPORTS.UNREACHABLE]: {
-    value: { en: 'Unreachable', fr: 'Injoignable' },
-    color: WIDGET_COLORS.DANGER,
+export const WIDGET_TEXT = {
+  en: {
+    lastDay: 'Last day',
+    month: 'This month',
+    monthCost: 'Month cost',
+    forecast: 'Bill forecast',
+    dayCost: 'Last day cost',
+    forecastUsage: 'Forecast usage',
+    typical: 'Same period last year',
+    period: 'Billing period',
+    chart: 'Last days',
+    dataUntil: (date) => `Data up to ${date} (utilities publish a day or two late)`,
+    notConfigured: 'Configure the Opower integration: utility, username and password.',
+    code: 'The utility asks for a verification code: enter it in Integrations → Opower.',
+    password: 'The utility refused the sign-in: check the integration configuration.',
+    noData: 'No reading yet: the first one comes after the sign-in.',
+  },
+  fr: {
+    lastDay: 'Dernier jour',
+    month: 'Ce mois-ci',
+    monthCost: 'Coût du mois',
+    forecast: 'Facture prévue',
+    dayCost: 'Coût du dernier jour',
+    forecastUsage: 'Consommation prévue',
+    typical: 'Même période l’an dernier',
+    period: 'Période de facturation',
+    chart: 'Derniers jours',
+    dataUntil: (date) => `Données jusqu’au ${date} (publiées avec un ou deux jours de retard)`,
+    notConfigured: 'Configurez l’intégration Opower : fournisseur, identifiant et mot de passe.',
+    code: 'Le fournisseur demande un code de vérification : saisissez-le dans Intégrations → Opower.',
+    password: 'Le fournisseur refuse la connexion : vérifiez la configuration de l’intégration.',
+    noData: 'Aucune donnée pour l’instant : la première arrive après la connexion.',
+  },
+  de: {
+    lastDay: 'Letzter Tag',
+    month: 'Dieser Monat',
+    monthCost: 'Kosten Monat',
+    forecast: 'Rechnungsprognose',
+    dayCost: 'Kosten letzter Tag',
+    forecastUsage: 'Prognose Verbrauch',
+    typical: 'Gleicher Zeitraum Vorjahr',
+    period: 'Abrechnungszeitraum',
+    chart: 'Letzte Tage',
+    dataUntil: (date) => `Daten bis ${date} (Versorger liefern ein bis zwei Tage später)`,
+    notConfigured: 'Richte die Opower-Integration ein: Versorger, Benutzername und Passwort.',
+    code: 'Der Versorger verlangt einen Bestätigungscode: gib ihn unter Integrationen → Opower ein.',
+    password: 'Der Versorger lehnt die Anmeldung ab: prüfe die Konfiguration der Integration.',
+    noData: 'Noch keine Daten: die ersten kommen nach der Anmeldung.',
+  },
+  es: {
+    lastDay: 'Último día',
+    month: 'Este mes',
+    monthCost: 'Coste del mes',
+    forecast: 'Factura prevista',
+    dayCost: 'Coste del último día',
+    forecastUsage: 'Consumo previsto',
+    typical: 'Mismo periodo del año pasado',
+    period: 'Periodo de facturación',
+    chart: 'Últimos días',
+    dataUntil: (date) => `Datos hasta el ${date} (se publican con uno o dos días de retraso)`,
+    notConfigured: 'Configure la integración Opower: compañía, usuario y contraseña.',
+    code: 'La compañía pide un código de verificación: introdúzcalo en Integraciones → Opower.',
+    password:
+      'La compañía rechaza el inicio de sesión: compruebe la configuración de la integración.',
+    noData: 'Aún no hay datos: los primeros llegan tras iniciar sesión.',
   },
 };
 
-// A live tile references a feature by its external_id: read it from the
-// discovery payload itself, so the widget and the device never disagree.
-function featureExternalId(gladys, config, blueprint, category) {
-  const device = blueprint.buildDevice(gladys, config);
-  return device.features.find((feature) => feature.category === category).external_id;
+const LOCALES = { en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
+
+/** "Oct 12" / "12 oct." for a YYYY-MM-DD date. */
+export function formatDay(date, language) {
+  const [y, m, d] = date.split('-').map(Number);
+  return new Intl.DateTimeFormat(LOCALES[language] ?? 'en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
-function plugConnectionStatus(gladys, config) {
-  const { transport, degraded } = plug.transport(gladys, config);
-  const { value, color } = TRANSPORT_STATUS[transport];
-  if (degraded) {
-    return {
-      value: { en: `${value.en} (degraded mode)`, fr: `${value.fr} (mode dégradé)` },
-      color: WIDGET_COLORS.WARNING,
-    };
-  }
-  return { value, color };
+function message(text) {
+  return {
+    ttl_seconds: 300,
+    components: [{ type: 'text', variant: WIDGET_TEXT_VARIANTS.BODY, text }],
+  };
 }
-
-export const WIDGETS = {
-  [DEMO_STATUS_WIDGET]: {
-    // `settings` holds the per-instance values of the declared `settings`
-    // (none here); `language` and `units` are those of the user viewing the
-    // dashboard, for the values you format yourself. Multi-language objects
-    // (`{ en, fr }`) are picked by the core, like everywhere else.
-    async get(gladys, { config }) {
-      logger.debug(`onWidgetGet <- ${DEMO_STATUS_WIDGET}`);
-      return {
-        // Reload policy: the computed parts below only change with the
-        // config, and index.js nudges the widget on every (re)connection and
-        // config update (see refreshWidgets) — the TTL is just a safety net.
-        ttl_seconds: 300,
-        components: [
-          // Device-bound tiles: LIVE, they follow the published states over
-          // the core's real-time path. No TTL, no nudge involved.
-          {
-            type: 'value',
-            label: { en: 'Temperature', fr: 'Température' },
-            icon: 'thermometer',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              weatherStation,
-              DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR,
-            ),
-          },
-          {
-            type: 'value',
-            label: { en: 'Office plug', fr: 'Prise du bureau' },
-            icon: 'zap',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              plug,
-              DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR,
-            ),
-          },
-          // Computed rows: what the integration knows that no device feature
-          // carries. Served from the core cache until the TTL or a nudge.
-          {
-            type: 'status',
-            items: [
-              {
-                label: { en: 'Plug connection', fr: 'Connexion de la prise' },
-                icon: 'wifi',
-                ...plugConnectionStatus(gladys, config),
-              },
-              {
-                label: { en: 'Observed location', fr: 'Position observée' },
-                icon: 'map-pin',
-                value: `${config.latitude.toFixed(2)}, ${config.longitude.toFixed(2)}`,
-                color: WIDGET_COLORS.NEUTRAL,
-              },
-            ],
-          },
-          // `params` are declared HERE and sent back as-is: the handler never
-          // receives user input (a dashboard can hang on a public wall).
-          {
-            type: 'button',
-            label: { en: 'Identify the light', fr: 'Identifier la lampe' },
-            icon: 'eye',
-            style: 'secondary',
-            action: {
-              key: DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT,
-              params: { device: light.deviceExternalId(gladys) },
-            },
-          },
-        ],
-      };
-    },
-
-    // Resolve an optional toast (string or multi-language object, ≤ 200
-    // characters). After a successful action the core drops the cached
-    // content and every open dashboard refetches it: no nudge needed.
-    async action(gladys, { actionKey, params, config }) {
-      logger.info(`onWidgetAction <- ${DEMO_STATUS_WIDGET}.${actionKey}`);
-      if (actionKey === DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT) {
-        return identifyDevice(gladys, params.device, config);
-      }
-      // Throwing acks the action as failed: the message reaches the user.
-      throw new Error(`Unknown widget action: ${actionKey}`);
-    },
-  },
-};
 
 /**
- * Freshness nudge: ask the core to re-pull every widget NOW instead of
- * waiting for the content TTL. Call it when you KNOW a computed content
- * changed (here: the config, which drives the plug transport and the observed
- * location) — and after every (re)connection, since the nudges are
- * fire-and-forget: rate-limited core-side to 1 per 10 s per widget, dropped
- * silently while disconnected.
+ * @param {object} input
+ * @param {object|null} input.meter a meter of the last cycle (src/app.js)
+ * @param {string} input.language
+ * @param {boolean} input.configured
+ * @param {'code'|'password'|null} input.signInProblem
+ * @param {string} input.timezone the utility's zone (the chart's days)
  */
-export function refreshWidgets(gladys) {
-  for (const key of Object.keys(WIDGETS)) {
-    gladys.requestWidgetRefresh(key);
+export function buildWidgetContent({ meter, language, configured, signInProblem, timezone }) {
+  const t = WIDGET_TEXT[language] ?? WIDGET_TEXT.en;
+  if (!configured) {
+    return message(t.notConfigured);
   }
+  if (signInProblem === 'code' || signInProblem === 'password') {
+    return message(t[signInProblem]);
+  }
+  if (!meter || !meter.summary?.lastDay) {
+    return message(t.noData);
+  }
+  const { lastDay, month, forecast, recent } = meter.summary;
+  const unit = meter.account.meterType === 'GAS' ? 'm³' : 'kWh';
+  const components = [
+    {
+      type: 'text',
+      variant: WIDGET_TEXT_VARIANTS.CAPTION,
+      text: t.dataUntil(formatDay(lastDay.date, language)),
+    },
+    {
+      type: 'value',
+      label: `${t.lastDay} (${formatDay(lastDay.date, language)})`,
+      value: lastDay.usage,
+      unit,
+      icon: 'zap',
+    },
+    { type: 'value', label: t.month, value: month.usage, unit, icon: 'calendar' },
+  ];
+  if (month.cost !== null) {
+    components.push({
+      type: 'value',
+      label: t.monthCost,
+      value: month.cost,
+      unit: '$',
+      icon: 'dollar-sign',
+    });
+  }
+  if (forecast?.cost !== null && forecast?.cost !== undefined) {
+    const above = forecast.typicalCost !== null && forecast.cost > forecast.typicalCost;
+    components.push({
+      type: 'value',
+      label: t.forecast,
+      value: forecast.cost,
+      unit: '$',
+      icon: 'file-text',
+      color: above ? WIDGET_COLORS.WARNING : WIDGET_COLORS.PRIMARY,
+    });
+  }
+  if (recent.length >= 2) {
+    components.push({
+      type: 'chart',
+      chart_type: WIDGET_CHART_TYPES.BAR,
+      title: t.chart,
+      unit,
+      series: [
+        {
+          name: unit,
+          points: recent.map((day) => ({
+            t: new Date(startOfLocalDay(day.date, timezone)).toISOString(),
+            v: day.usage,
+          })),
+        },
+      ],
+    });
+  }
+  const items = [];
+  if (lastDay.cost !== null) {
+    items.push({ label: t.dayCost, value: `$${lastDay.cost.toFixed(2)}` });
+  }
+  if (forecast?.usage !== null && forecast?.usage !== undefined) {
+    items.push({ label: t.forecastUsage, value: `${forecast.usage} ${unit}` });
+  }
+  if (forecast?.typicalCost !== null && forecast?.typicalCost !== undefined) {
+    items.push({ label: t.typical, value: `$${forecast.typicalCost.toFixed(2)}` });
+  }
+  if (forecast?.startDate && forecast?.endDate) {
+    items.push({
+      label: t.period,
+      value: `${formatDay(forecast.startDate, language)} – ${formatDay(forecast.endDate, language)}`,
+    });
+  }
+  if (items.length > 0) {
+    components.push({ type: 'status', items });
+  }
+  return { ttl_seconds: TTL_SECONDS, components };
 }

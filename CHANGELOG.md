@@ -12,44 +12,28 @@ the notes of the version's GitHub Release.
 
 ### Added
 
-- A working example of scene triggers, scene actions and dashboard widgets
-  (Gladys 5.1.0 or later).
-- `CHANGELOG.md`, rolled by the Release workflow.
-- A GitHub Release for every version, with its changelog section as notes: the
-  Gladys Supervision page links each version to the repository's releases.
-- CI runs the tests on Node 22 and 24, and builds the Docker image.
-- Dependabot keeps the npm dependencies and the GitHub Actions up to date.
-- `SECURITY.md` (how to report a vulnerability) and `CLAUDE.md` (project rules
-  for contributors and coding assistants).
-- Manifest tests: `version` matches `package.json`, `docker_image` is tagged
-  with it, descriptions hold 10 to 100 characters, placeholders are
-  multi-language objects.
-- The latitude and longitude fields show an example value as placeholder.
+- Electricity and gas meters of US utilities on Opower: AEP Ohio, AEP Texas,
+  Appalachian Power, Atlantic City Electric, BGE, ComEd, ConEd, Delmarva,
+  Duquesne Light, Indiana Michigan Power, Kentucky Power, O&R, PG&E, PECO,
+  Pepco, PSO, PSE and SWEPCO. One device per meter.
+- Electricity feeds the Gladys 5.2 energy tracking with a consumption dated
+  at its real time (30-minute slots from hourly reads, or days), the history
+  of your choice imported at the first reading.
+- Per meter: the last complete day, the current month and the bill forecast,
+  in kWh (gas in m³) and dollars.
+- Sign-in by password, by an authenticator key (ConEd, O&R), or by a
+  verification code sent by email or text (PG&E, Exelon companies), with the
+  "Send the verification code" and "Enter the code" actions; the sign-in is
+  then remembered.
+- A reading every 12 hours by the integration itself, and a "Sign in and
+  refresh now" action.
+- The "Utility energy summary" dashboard widget, the "New day of usage
+  available" and "Utility sign-in needs you" scene triggers, and the "Read a
+  meter summary" scene action.
+- PSE is marked experimental until a real account checks it. Requests carry
+  the Accept-Language header of a browser, without which PSE answers its
+  error page.
+- Texts in English, French, German and Spanish; documentation in the four
+  languages.
 
-### Changed
-
-- Node.js 22 or later is required (Node 20 is end-of-life).
-- Integration SDK 0.15.0. The tests now run against the fake Gladys of the
-  SDK, which refuses the payloads Gladys refuses.
-- The refresh interval is one minute minimum, the fastest Gladys polls a
-  device. The plug's power is only sent when it changes, and every 30
-  minutes otherwise.
-
-### Fixed
-
-- Gladys refused the devices of the Discovery tab: the weather station and
-  the plug declared their poll frequency in seconds instead of one of the
-  values Gladys accepts, and were never polled. They now poll every minute,
-  and the readings follow the refresh interval of the configuration.
-
-- The release commit no longer fails `npm run format:check`: the Release
-  workflow updates the manifest `version` and `docker_image` in place instead
-  of re-printing the whole file with `jq`.
-- The integration can write to `/data`: the image creates the directory owned
-  by the `node` user, a new Docker volume was owned by root.
-- A sub-container running the integration's own image follows it to the new
-  tag at each release, as well as in the manifest of the build summary: it kept
-  the previous tag, which may not exist on the registry. Sub-containers on a
-  third-party image (a broker, a database...) keep theirs.
-
-[Unreleased]: https://github.com/GladysAssistant/integration-template-js/commits/main
+[Unreleased]: https://github.com/guim31/gladys-opower/commits/main

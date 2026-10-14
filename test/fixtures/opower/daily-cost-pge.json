@@ -1,0 +1,49 @@
+{
+  "servicePointId": "9000000001",
+  "utilityAccountUuid": "22222222-2222-11e5-bf2b-000000000002",
+  "unit": "KWH",
+  "siteTimeZoneId": "America/Los_Angeles",
+  "reads": [
+    {
+      "startTime": "2026-07-01T00:00:00.000-07:00",
+      "endTime": "2026-07-02T00:00:00.000-07:00",
+      "value": 29.4584,
+      "readType": "ACTUAL",
+      "providedCost": 9.632872208,
+      "readComponents": [
+        {
+          "tierType": "ORDINAL",
+          "tierNumber": 1,
+          "season": "SUMMER",
+          "dayPart": "OFF_PEAK",
+          "cost": 6.724775951,
+          "value": 21.6701
+        },
+        {
+          "tierType": "ORDINAL",
+          "tierNumber": 2,
+          "season": "SUMMER",
+          "dayPart": "ON_PEAK",
+          "cost": 2.908096257,
+          "value": 7.7883
+        }
+      ],
+      "rebateAmount": 0,
+      "milesDriven": 49,
+      "isPeakPeriod": false
+    },
+    {
+      "startTime": "2026-07-02T00:00:00.000-07:00",
+      "endTime": "2026-07-03T00:00:00.000-07:00",
+      "value": 0,
+      "readType": "ACTUAL",
+      "providedCost": 0,
+      "readComponents": null,
+      "rebateAmount": null,
+      "milesDriven": 0,
+      "isPeakPeriod": null
+    }
+  ],
+  "seriesComponents": null,
+  "ratePlans": null
+}

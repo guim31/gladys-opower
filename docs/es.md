@@ -1,0 +1,283 @@
+# Opower (US utilities)
+
+Trae a Gladys el consumo de electricidad y gas de su cuenta en una compañía de
+EE. UU.: el consumo del día anterior, el mes en curso, su coste y la previsión
+de factura del periodo de facturación actual. La electricidad alimenta además
+el **seguimiento de energía** de Gladys 5.2, hora a hora, en el momento en que
+se consumió realmente.
+
+Muchas compañías de EE. UU. muestran su consumo a través de la misma
+plataforma, Opower (Oracle). Esta integración inicia sesión en el sitio web de
+su compañía con su propia cuenta, como lo hace su aplicación móvil.
+
+> Sin relación con Oracle Opower ni con las compañías. **Developed without the
+> hardware: feedback welcome** — desarrollada sin contador ni cuenta: sus
+> comentarios son bienvenidos (issues de GitHub o foro de Gladys). Los inicios
+> de sesión se portaron desde la biblioteca libre que usa Home Assistant, pero
+> no se pudieron probar en los sitios reales.
+
+## Presentación
+
+- Un dispositivo de Gladys por contador: electricidad y gas, si su cuenta
+  tiene ambos.
+- **Electricidad**: el consumo, fechado hora a hora (o día a día), va al
+  seguimiento de energía de Gladys; además el último día completo, el mes en
+  curso y la previsión de factura, en kWh y dólares.
+- **Gas**: los mismos resúmenes, en metros cúbicos (m³) y dólares.
+- Un widget de panel, dos disparadores de escena y una acción de escena.
+- Los datos se leen cada 12 horas. Las compañías los publican con uno o dos
+  días de retraso.
+
+## Compañías compatibles
+
+El inicio de sesión es distinto en cada compañía. Estas son compatibles:
+
+| Compañía                                     | Inicio de sesión                                                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| AEP Ohio                                     | usuario y contraseña                                                                                        |
+| AEP Texas                                    | usuario y contraseña                                                                                        |
+| Appalachian Power                            | usuario y contraseña                                                                                        |
+| Atlantic City Electric                       | código de verificación (correo o SMS)                                                                       |
+| Baltimore Gas and Electric (BGE)             | código de verificación (correo o SMS)                                                                       |
+| Commonwealth Edison (ComEd)                  | código de verificación (correo o SMS)                                                                       |
+| Consolidated Edison (ConEd)                  | contraseña, y la clave de autenticación si la verificación en dos pasos está activa                         |
+| Delmarva Power                               | código de verificación (correo o SMS)                                                                       |
+| Duquesne Light Company (DQE)                 | usuario y contraseña                                                                                        |
+| Indiana Michigan Power                       | usuario y contraseña                                                                                        |
+| Kentucky Power                               | usuario y contraseña                                                                                        |
+| Orange & Rockland Utilities (O&R)            | contraseña, y la clave de autenticación si la verificación en dos pasos está activa                         |
+| Pacific Gas and Electric Company (PG&E)      | contraseña, a veces un código de verificación (correo o SMS)                                                |
+| PECO Energy Company (PECO)                   | código de verificación (correo o SMS)                                                                       |
+| Potomac Electric Power Company (Pepco)       | código de verificación (correo o SMS)                                                                       |
+| Public Service Company of Oklahoma (PSO)     | usuario y contraseña                                                                                        |
+| Puget Sound Energy (PSE)                     | usuario y contraseña (experimental: la prueba real con una cuenta inventada terminó en una página de error) |
+| Southwestern Electric Power Company (SWEPCO) | usuario y contraseña                                                                                        |
+
+### Aún no compatibles
+
+La biblioteca de referencia conoce estas compañías Opower, pero aún no se han
+portado: AES Indiana, Burbank Water and Power (BWP), Clark Public Utilities,
+City of Austin Utilities, Evergy, Eversource, Glendale Water and Power (GWP),
+Northern Indiana Public Service Company (NIPSCO), Rhode Island Energy,
+Seattle City Light (SCL), Southern Maryland Electric Cooperative (SMECO),
+Sacramento Municipal Utility District (SMUD), Southwest Gas. Duke Energy y
+Portland General Electric tampoco los sirve la biblioteca de referencia.
+Solicite la suya en GitHub: cada una necesita su propio inicio de sesión.
+
+## Requisitos
+
+- Gladys 5.2.0 o posterior.
+- Una cuenta en línea en su compañía (la de su sitio web), con un contador
+  inteligente para la electricidad por horas. Sin contador inteligente, la
+  compañía solo ofrece cifras diarias o mensuales.
+- Gladys debe acceder a Internet (el sitio de la compañía y opower.com).
+
+## Configuración
+
+1. En **Integraciones → Instalar desde GitHub**, instale
+   `https://github.com/guim31/gladys-opower`.
+2. En la pestaña **Configuración**, elija su **compañía** e introduzca el
+   **usuario** (o correo) y la **contraseña** de su sitio web.
+3. Elija el **historial que importar**: los días de electricidad enviados al
+   seguimiento de energía en la primera lectura (30 días por defecto, hasta un
+   año). Si lo aumenta más tarde, el historial más largo se importa en la
+   lectura siguiente.
+4. Elija el **idioma de los nombres de dispositivos** (francés por defecto):
+   los nombres se fijan al añadir un contador.
+5. Guarde. La integración inicia sesión y luego enumera sus contadores en la
+   pestaña **Descubrir**: añádalos.
+
+La acción **Iniciar sesión y actualizar** lee todo de inmediato en lugar de
+esperar al siguiente ciclo de 12 horas (no más de una vez cada cuarto de
+hora).
+
+### Código de verificación (PG&E, Exelon)
+
+PG&E y las empresas de Exelon (ComEd, PECO, BGE, Pepco, Delmarva, Atlantic
+City Electric) pueden pedir un código enviado por correo o SMS. La pantalla de
+configuración indica entonces «Se requiere un código» y enumera adónde puede
+enviarse.
+
+1. Use la acción **Enviar el código de verificación** y elija **Correo
+   electrónico** o **SMS**.
+2. Cuando llegue el código, use **Introducir el código** en 10 minutos.
+
+La integración guarda entonces lo que la compañía da para reconocer este
+dispositivo (en `/data`), y los inicios de sesión siguientes ya no necesitan
+código. Las empresas de Exelon siempre piden un código la primera vez y luego
+dan un token que se renueva en cada lectura; si dejan de aceptarlo (tras una
+parada larga), se pide un código nuevo. El disparador de escena **Hay que
+volver a iniciar sesión** le avisa.
+
+### Clave de autenticación (ConEd, O&R)
+
+Las cuentas de ConEd y O&R con verificación en dos pasos por aplicación
+necesitan la **clave secreta de autenticación**: la clave de texto mostrada
+al configurar la aplicación (no un código de 6 dígitos). La integración
+calcula los códigos por sí misma. Si ya no tiene la clave, vuelva a configurar
+la verificación en dos pasos en coned.com y copie la clave que muestra.
+
+## Dispositivos
+
+Cada contador es un dispositivo con el nombre de la compañía, el tipo de
+contador y los últimos dígitos de la cuenta, por ejemplo «PG&E Electricidad
+…0003».
+
+### Contador de electricidad
+
+| Función                    | Unidad | Qué es                                                                                                          |
+| -------------------------- | ------ | --------------------------------------------------------------------------------------------------------------- |
+| Consumo                    | kWh    | El consumo por 30 minutos, fechado, para el seguimiento de energía (lecturas horarias divididas en dos mitades) |
+| Consumo diario             | kWh    | En lugar del anterior, para un contador leído por días                                                          |
+| Consumo del último día     | kWh    | El último día completo publicado por la compañía                                                                |
+| Coste del último día       | $      | Su coste, cuando la compañía da los costes                                                                      |
+| Consumo del mes            | kWh    | El mes natural en curso, solo días completos                                                                    |
+| Coste del mes              | $      | Su coste, solo cuando cada uno de sus días tiene coste                                                          |
+| Consumo previsto (factura) | kWh    | El consumo que la compañía prevé para el periodo de facturación                                                 |
+| Previsión de factura       | $      | La factura que la compañía prevé para el periodo de facturación                                                 |
+
+Una vivienda con balance neto (net metering, solar) puede mostrar un consumo
+negativo un día en que inyectó más de lo que consumió.
+
+### Contador de gas
+
+Los mismos resúmenes, sin la función de consumo: último día, mes y consumo
+previsto en m³, sus costes en dólares. Gladys no tiene unidad therm ni CCF,
+así que los volúmenes de gas se convierten:
+
+- CCF (100 pies cúbicos): × 2,832 m³, exacto;
+- therm (una unidad de energía): × 2,731 m³, mediante el poder calorífico
+  medio del gas natural entregado a los hogares de EE. UU. (1037 Btu por pie
+  cúbico, EIA). Su gas puede diferir unos pocos por ciento: su factura indica
+  el factor de su compañía.
+
+## Seguimiento de energía
+
+Gladys 5.2 puede importar un consumo fechado en el pasado: la integración
+envía cada media hora a su hora real, por el punto de entrada dedicado del
+núcleo, y vuelve a enviar los tres últimos días en cada lectura (las compañías
+corrigen sus datos recientes; Gladys solo escribe lo que cambia). Los gráficos
+de energía y el coste calculado según su contrato son, por tanto, correctos
+aunque los datos lleguen con uno o dos días de retraso.
+
+A propósito, no se publica ningún índice acumulado: Gladys convertiría un
+índice recibido con un día de retraso en una sola media hora de consumo.
+
+Para que Gladys calcule los costes, elija la función **Consumo** de su
+contador de electricidad como contador principal en los ajustes de energía y
+cree allí su contrato. Las funciones **Previsión de factura** y **coste**
+vienen de su compañía y no dependen de ese contrato.
+
+El gas no se envía al seguimiento de energía: Gladys 5.2 solo valora la
+electricidad, y un consumo de gas se sumaría a la electricidad.
+
+## Widget de panel
+
+**Resumen de energía** muestra, para un contador (el primer contador de
+electricidad si no elige ninguno): el último día completo y su fecha, el mes
+en curso, el coste del mes, la previsión de factura (en naranja cuando supera
+el mismo periodo del año pasado), los últimos 14 días en barras, y el coste
+del último día, el consumo previsto, la cifra del año pasado y el periodo de
+facturación. Cuando el inicio de sesión le espera, el widget indica por qué.
+
+## Disparadores y acción de escena
+
+- **Nuevo día de consumo disponible** (disparador): la compañía publicó un
+  nuevo día completo para un contador, a menudo con uno o dos días de
+  retraso. Elija el contador si lo desea. Variables: el día (`date`,
+  AAAA-MM-DD), su consumo, unidad y coste, el consumo y el coste del mes, la
+  previsión de factura. Se activa una vez por día nuevo; la primera lectura
+  tras la instalación solo fija el punto de partida.
+- **Hay que volver a iniciar sesión** (disparador): la compañía pide un
+  código de verificación o rechaza la contraseña. Las lecturas se detienen
+  hasta que usted actúe. Filtre por el motivo si lo desea (código,
+  contraseña). Se activa una vez por problema.
+- **Leer el resumen de un contador** (acción): da el último día completo, su
+  consumo y coste, el consumo y el coste del mes y la previsión de factura de
+  un contador, para las acciones siguientes de la escena. Una cifra
+  desconocida queda vacía.
+
+## Ejemplos de escenas
+
+- **Informe diario**: disparador _Nuevo día de consumo disponible_ (contador
+  de electricidad) → enviar un mensaje «{{triggerEvent.data.date}}:
+  {{triggerEvent.data.usage}} kWh, {{triggerEvent.data.cost}} $. Factura
+  prevista: {{triggerEvent.data.forecast_cost}} $.»
+- **Vigilar la factura**: disparador _Nuevo día de consumo disponible_,
+  condición sobre la función **Previsión de factura** mayor que su
+  presupuesto → notificación.
+- **No perder los datos**: disparador _Hay que volver a iniciar sesión_ →
+  enviar un mensaje «Opower espera un código de verificación: abra
+  Integraciones → Opower».
+- **Resumen semanal**: una escena programada cada semana → _Leer el resumen
+  de un contador_ → enviar el coste del mes y la previsión en un mensaje.
+
+## Actualización y cuotas
+
+- Una lectura cada 12 horas (el ritmo de la integración de Home Assistant),
+  con un nuevo intento al cabo de una hora cuando la compañía no responde.
+  Cada lectura vuelve a iniciar sesión (las sesiones de las compañías duran
+  minutos).
+- Una lectura cuesta unas pocas solicitudes por contador: el consumo horario
+  del mes (dos solicitudes), los costes diarios (una), la previsión (una por
+  cuenta) y el propio inicio de sesión. La primera lectura importa el
+  historial elegido: hasta 15 solicitudes para un año de horas.
+- La integración se consulta a sí misma: no depende del sondeo de Gladys.
+- Las condiciones de uso de la compañía se aplican a su cuenta: esta
+  integración solo lee sus propios datos, despacio.
+
+## Solución de problemas
+
+- **«La compañía rechaza el inicio de sesión»**: compruebe el usuario y la
+  contraseña en el sitio de la compañía. Una cuenta de ConEd/O&R también
+  necesita la clave de autenticación. Demasiados fallos pueden bloquear la
+  cuenta en la compañía.
+- **«Se requiere un código»**: vea _Código de verificación_ más arriba. El
+  ciclo de 12 horas no pide un código nuevo mientras se espera uno (10
+  minutos).
+- **«No se puede contactar con la compañía»**: el sitio u opower.com no
+  respondió; se reintenta cada hora. Si persiste, quizá la compañía cambió su
+  inicio de sesión: abra una issue en GitHub con los registros.
+- **Ningún contador listado**: la cuenta no tiene ningún contador de
+  electricidad o gas servido por Opower (el agua no es compatible).
+- **El último día es de anteayer**: normal, las compañías publican con
+  retraso.
+- **Registros**: ponga `LOG_LEVEL=debug` para ver cada lectura. Los registros
+  nunca muestran la contraseña, los códigos ni los tokens.
+
+## Limitaciones
+
+- **Developed without the hardware: feedback welcome** — desarrollada sin
+  contador ni cuenta. Los inicios de sesión siguen la biblioteca de
+  referencia y sus pruebas, no los sitios reales: los primeros intentos
+  reales pueden mostrar diferencias.
+- Los datos llegan con uno o dos días de retraso: sin potencia instantánea,
+  sin «hoy».
+- Las lecturas horarias se dividen en dos medias horas iguales.
+- Balance neto: el seguimiento de energía cuenta una hora de inyección como
+  0; los resúmenes conservan las cifras netas.
+- El gas está en m³ (therms convertidos con una media) y fuera del
+  seguimiento de energía.
+- Varias cuentas: un inicio de sesión por integración. Las empresas de Exelon
+  solo leen la cuenta predeterminada del inicio de sesión.
+- Las funciones de coste son las cifras de la compañía, en dólares. El coste
+  que Gladys calcula en el seguimiento de energía viene del contrato que usted
+  crea en Gladys, no de la compañía.
+- Los contadores de agua no son compatibles.
+
+## Privacidad y datos
+
+La contraseña y la clave de autenticación permanecen en la configuración de
+Gladys. El archivo `/data/opower-state.json` guarda lo que evita el código de
+verificación (cookies de dispositivo, el token de actualización de Exelon) y,
+por contador, hasta dónde se alimentó el seguimiento de energía. Solo la
+integración puede leerlo. Nada se envía a otro lugar que al sitio de su
+compañía, a opower.com y a su Gladys.
+
+## Créditos
+
+Los inicios de sesión y las llamadas a la API de Opower se portaron desde
+[tronikos/opower](https://github.com/tronikos/opower) (Apache-2.0), la
+biblioteca de la [integración Opower de Home Assistant](https://www.home-assistant.io/integrations/opower/)
+(Apache-2.0); sus pruebas aportaron las formas de respuesta usadas en las
+pruebas de aquí.

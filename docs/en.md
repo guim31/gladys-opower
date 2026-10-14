@@ -1,61 +1,261 @@
-# Demo Devices Template
+# Opower (US utilities)
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Brings the electricity and gas usage of your US utility account into Gladys:
+yesterday's usage, the month so far, its cost, and the bill forecast of the
+current billing period. Electricity also feeds the **energy tracking** of
+Gladys 5.2, hour by hour, at the time it was really used.
 
-## What you get
+Many US utilities show your usage through the same platform, Opower (Oracle).
+This integration signs in to your utility's website with your own account,
+like their mobile app does.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+> Not affiliated with Oracle Opower or the utilities. **Developed without the
+> hardware or an account: feedback welcome** (GitHub issues, or the Gladys
+> forum). The sign-ins are ports of the open-source library used by Home
+> Assistant, but they could not be tried against the real websites.
+
+## Overview
+
+- One Gladys device per meter: electricity and gas, if your account has both.
+- **Electricity**: the consumption, dated hour by hour (or day by day), goes
+  to the Gladys energy tracking; plus the last complete day, the month so far
+  and the bill forecast, in kWh and dollars.
+- **Gas**: the same summaries, in cubic meters (m³) and dollars.
+- A dashboard widget, two scene triggers and a scene action.
+- The data is read every 12 hours. Utilities publish it a day or two late.
+
+## Supported utilities
+
+The sign-in differs for each utility. These are supported:
+
+| Utility                                      | Sign-in                                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| AEP Ohio                                     | username and password                                                                            |
+| AEP Texas                                    | username and password                                                                            |
+| Appalachian Power                            | username and password                                                                            |
+| Atlantic City Electric                       | verification code (email or text)                                                                |
+| Baltimore Gas and Electric (BGE)             | verification code (email or text)                                                                |
+| Commonwealth Edison (ComEd)                  | verification code (email or text)                                                                |
+| Consolidated Edison (ConEd)                  | password, and the authenticator key if two-step sign-in is on                                    |
+| Delmarva Power                               | verification code (email or text)                                                                |
+| Duquesne Light Company (DQE)                 | username and password                                                                            |
+| Indiana Michigan Power                       | username and password                                                                            |
+| Kentucky Power                               | username and password                                                                            |
+| Orange & Rockland Utilities (O&R)            | password, and the authenticator key if two-step sign-in is on                                    |
+| Pacific Gas and Electric Company (PG&E)      | password, sometimes a verification code (email or text)                                          |
+| PECO Energy Company (PECO)                   | verification code (email or text)                                                                |
+| Potomac Electric Power Company (Pepco)       | verification code (email or text)                                                                |
+| Public Service Company of Oklahoma (PSO)     | username and password                                                                            |
+| Puget Sound Energy (PSE)                     | username and password (experimental: the live check of a made-up account ended on an error page) |
+| Southwestern Electric Power Company (SWEPCO) | username and password                                                                            |
+
+### Not supported yet
+
+These Opower utilities are known to the reference library but not ported
+yet: AES Indiana, Burbank Water and Power (BWP), Clark Public Utilities, City
+of Austin Utilities, Evergy, Eversource, Glendale Water and Power (GWP),
+Northern Indiana Public Service Company (NIPSCO), Rhode Island Energy,
+Seattle City Light (SCL), Southern Maryland Electric Cooperative (SMECO),
+Sacramento Municipal Utility District (SMUD), Southwest Gas. Duke Energy and
+Portland General Electric are not served by the reference library either.
+Ask for yours on GitHub: each one needs its own sign-in.
+
+## Requirements
+
+- Gladys 5.2.0 or later.
+- An online account at your utility (the one of its website), with a smart
+  meter for hourly electricity. Without a smart meter, the utility serves
+  daily or monthly figures only.
+- Gladys must reach the Internet (the utility's website and opower.com).
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+1. In **Integrations → Install from GitHub**, install
+   `https://github.com/guim31/gladys-opower`.
+2. In the **Configuration** tab, choose your **utility**, enter the
+   **username** (or email) and **password** of its website.
+3. Choose the **history to import**: the electricity days sent to the energy
+   tracking on the first reading (30 days by default, up to a year). Raising it later imports the longer history at the next reading.
+4. Choose the **language of device names** (French by default): names are
+   fixed when you add a meter.
+5. Save. The integration signs in, then lists your meters in the **Discover**
+   tab: add them.
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+The **Sign in and refresh now** action reads everything at once instead of
+waiting for the next 12-hour cycle (not more than once every 15 minutes).
 
-## Actions
+### Verification code (PG&E, Exelon)
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+PG&E and the Exelon companies (ComEd, PECO, BGE, Pepco, Delmarva, Atlantic
+City Electric) may ask for a code sent by email or text. The Configuration
+screen then says "Verification code required" and lists where the code can
+go.
 
-## Scenes
+1. Use the **Send the verification code** action, and choose **Email** or
+   **Text message**.
+2. When the code arrives, use **Enter the code** within 10 minutes.
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+The integration then keeps what the utility gives to remember this device (in
+`/data`), and the next sign-ins need no code. The Exelon companies always ask
+for a code the first time, then give a token renewed at every reading; if
+they stop accepting it (after a long stop), a new code is asked. The **Utility
+sign-in needs you** scene trigger tells you.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+### Authenticator key (ConEd, O&R)
 
-## Dashboard
+ConEd and O&R accounts with two-step sign-in by authenticator app need the
+**authenticator secret key**: the text key shown when you set the app up (not
+a 6-digit code). The integration computes the codes itself. If you do not
+have the key any more, set the two-step sign-in up again on coned.com and
+copy the key it shows.
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+## Devices
+
+Each meter is a device named after the utility, the kind of meter and the
+last digits of the account, e.g. "PG&E Electricity …0003".
+
+### Electricity meter
+
+| Feature               | Unit | What it is                                                                                   |
+| --------------------- | ---- | -------------------------------------------------------------------------------------------- |
+| Consumption           | kWh  | The 30-minute consumption, dated, for the energy tracking (hourly reads split in two halves) |
+| Daily consumption     | kWh  | Instead of the previous one, for a meter read by the day                                     |
+| Last day usage        | kWh  | The last complete day the utility published                                                  |
+| Last day cost         | $    | Its cost, when the utility gives costs                                                       |
+| Month usage           | kWh  | The current calendar month, complete days only                                               |
+| Month cost            | $    | Its cost, only when every day of it has a cost                                               |
+| Forecast usage (bill) | kWh  | The usage the utility forecasts for the billing period                                       |
+| Bill forecast         | $    | The bill the utility forecasts for the billing period                                        |
+
+A net-metered (solar) home can show a negative usage on a day it exported
+more than it used.
+
+### Gas meter
+
+The same summaries, without the consumption feature: last day, month and
+forecast usage in m³, their costs in dollars. Gladys has no therm nor CCF
+unit, so the gas volumes are converted:
+
+- CCF (100 cubic feet): × 2.832 m³, exact;
+- therm (an energy unit): × 2.731 m³, through the average heat content of the
+  natural gas delivered to US homes (1,037 Btu per cubic foot, EIA). Your gas
+  can differ by a few percent: your bill shows the factor your utility uses.
+
+## Energy tracking
+
+Gladys 5.2 can import consumption dated in the past: the integration sends
+each half hour at its real time, through the core's dedicated endpoint, and
+sends the last three days again at every reading (utilities correct their
+recent data; Gladys only writes what changed). The energy charts and the cost
+computed from your tariff are therefore right even though the data arrives a
+day or two late.
+
+No cumulative index is published on purpose: Gladys would turn an index
+received a day late into one half hour of consumption.
+
+To get the costs computed by Gladys, set your electricity meter's
+**Consumption** feature as the main meter in the energy settings and create
+your contract there. The **Bill forecast** and **cost** features come from
+your utility and do not depend on that contract.
+
+Gas is not sent to the energy tracking: Gladys 5.2 prices electricity only,
+and a gas consumption would be added to the electricity.
+
+## Dashboard widget
+
+**Utility energy summary** shows, for one meter (the first electricity meter
+if you choose none): the last complete day and its date, the month so far,
+the month cost, the bill forecast (orange when above the same period last
+year), the last 14 days as bars, and the last-day cost, the forecast usage,
+last year's figure and the billing period. When the sign-in waits for you,
+the widget says why.
+
+## Scene triggers and action
+
+- **New day of usage available** (trigger): the utility published a new
+  complete day for a meter, often a day or two late. Optionally pick the
+  meter. Variables: the day (`date`, YYYY-MM-DD), its usage, unit and cost,
+  the month usage and cost, the bill forecast. Fired once per new day; the
+  first reading after installing only sets the starting point.
+- **Utility sign-in needs you** (trigger): the utility asks for a
+  verification code, or refused the password. Readings stop until you act.
+  Optionally filter on the reason (code, password). Fired once per problem.
+- **Read a meter summary** (action): gives the last complete day, its usage
+  and cost, the month usage and cost and the bill forecast of a meter, for
+  the next actions of the scene. An unknown figure is left empty.
+
+## Scene examples
+
+- **Daily report**: trigger _New day of usage available_ (electricity meter)
+  → send a message "{{triggerEvent.data.date}}: {{triggerEvent.data.usage}}
+  kWh, ${{triggerEvent.data.cost}}. Bill forecast:
+  ${{triggerEvent.data.forecast_cost}}."
+- **Bill watch**: trigger _New day of usage available_, condition on the
+  device feature **Bill forecast** greater than your budget → notify.
+- **Do not lose the data**: trigger _Utility sign-in needs you_ → send a
+  message "Opower needs a verification code: open Integrations → Opower".
+- **Weekly summary**: a weekly scheduled scene → _Read a meter summary_ →
+  send the month cost and the forecast in a message.
+
+## Refresh and quotas
+
+- One reading every 12 hours (the pace of the Home Assistant integration),
+  retried after an hour when the utility cannot be reached. Each reading signs
+  in again (the utilities' sessions last minutes).
+- One reading costs a few requests per meter: the hourly usage of the month
+  (two requests), the daily costs (one), the forecast (one per account), and
+  the sign-in itself. The first reading imports the chosen history: up to 15
+  requests for a year of hours.
+- The integration polls itself: it does not depend on the Gladys polling.
+- The utilities' terms of use apply to your account: this integration reads
+  only your own data, slowly.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **"The utility refused the sign-in"**: check the username and the password
+  on the utility's website. A ConEd/O&R account also needs the authenticator
+  key. Too many failed sign-ins can lock the account at the utility.
+- **"Verification code required"**: see _Verification code_ above. The
+  12-hour cycle does not ask for a new code while one is expected (10
+  minutes).
+- **"Cannot reach the utility"**: the website or opower.com did not answer;
+  it is retried every hour. If it lasts, the utility may have changed its
+  sign-in: open an issue on GitHub with the logs.
+- **No meter listed**: the account has no electricity or gas meter served by
+  Opower (water is not supported).
+- **The last day is two days ago**: normal, utilities publish late.
+- **Logs**: set `LOG_LEVEL=debug` to see every reading. The logs never show
+  the password, the codes or the tokens.
+
+## Limits
+
+- **Developed without the hardware or an account: feedback welcome.** The
+  sign-ins follow the reference library and its tests, not live websites:
+  the first real tries may find differences.
+- The data is a day or two late: no live power, no "today".
+- Hourly reads are split into two equal half hours.
+- Net metering: the energy tracking counts an exporting hour as 0; the
+  summaries keep the net figures.
+- Gas is in m³ (therms converted with an average) and not in the energy
+  tracking.
+- Several accounts: one sign-in per integration. Exelon companies read the
+  default account of the sign-in only.
+- The cost features are the utility's figures, in dollars. The cost Gladys
+  computes in the energy tracking comes from the contract you create in
+  Gladys, not from the utility.
+- Water meters are not supported.
+
+## Privacy and data
+
+The password and the authenticator key stay in the Gladys configuration. The
+file `/data/opower-state.json` keeps what skips the verification code (device
+cookies, the Exelon refresh token), and per meter how far the energy tracking
+was fed. It is readable by the integration only. Nothing is sent anywhere
+but to your utility's website, opower.com and your Gladys.
+
+## Credits
+
+The sign-ins and the Opower API calls are ports of
+[tronikos/opower](https://github.com/tronikos/opower) (Apache-2.0), the
+library of the [Home Assistant Opower integration](https://www.home-assistant.io/integrations/opower/)
+(Apache-2.0); its tests provided the response shapes used in the tests here.
