@@ -1,6 +1,6 @@
 {
   "name": "gladys-opower",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration for US utilities on Opower: electricity and gas usage, cost, bill forecast, energy tracking.",
   "type": "module",

@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-14
+
 ### Added
 
 - Electricity and gas meters of US utilities on Opower: AEP Ohio, AEP Texas,
@@ -36,4 +38,5 @@ the notes of the version's GitHub Release.
 - Texts in English, French, German and Spanish; documentation in the four
   languages.
 
-[Unreleased]: https://github.com/guim31/gladys-opower/commits/main
+[Unreleased]: https://github.com/guim31/gladys-opower/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/guim31/gladys-opower/releases/tag/v1.0.1
