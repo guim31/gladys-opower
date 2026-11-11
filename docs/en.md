@@ -62,7 +62,7 @@ Ask for yours on GitHub: each one needs its own sign-in.
 
 ## Requirements
 
-- Gladys 5.2.0 or later.
+- Gladys 5.3.0 or later.
 - An online account at your utility (the one of its website), with a smart
   meter for hourly electricity. Without a smart meter, the utility serves
   daily or monthly figures only.

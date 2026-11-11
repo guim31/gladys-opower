@@ -66,7 +66,7 @@ Solicite la suya en GitHub: cada una necesita su propio inicio de sesión.
 
 ## Requisitos
 
-- Gladys 5.2.0 o posterior.
+- Gladys 5.3.0 o posterior.
 - Una cuenta en línea en su compañía (la de su sitio web), con un contador
   inteligente para la electricidad por horas. Sin contador inteligente, la
   compañía solo ofrece cifras diarias o mensuales.

@@ -53,7 +53,7 @@ NIPSCO, Rhode Island Energy, Seattle City Light, SMECO, SMUD, Southwest Gas.
 
 ## Requirements
 
-- Gladys Assistant **5.2.0** or later (dated consumption for the energy
+- Gladys Assistant **5.3.0** or later (catalog countries; 5.2.0 for dated consumption for the energy
   tracking, widgets, scene triggers and actions).
 - An online account at a supported utility; a smart meter for hourly
   electricity.
