@@ -65,7 +65,7 @@ bedient. Frag auf GitHub nach deinem: jeder braucht seine eigene Anmeldung.
 
 ## Voraussetzungen
 
-- Gladys 5.2.0 oder neuer.
+- Gladys 5.3.0 oder neuer.
 - Ein Online-Konto bei deinem Versorger (das seiner Website), mit einem
   Smart Meter für stündliche Stromdaten. Ohne Smart Meter liefert der
   Versorger nur Tages- oder Monatswerte.

@@ -211,3 +211,8 @@ test('field placeholders are multi-language objects', () => {
     assert.equal(typeof entry.placeholder, 'object', `field "${entry.key}": placeholder`);
   }
 });
+
+test('the catalog countries: the United States, which needs Gladys >= 5.3.0', () => {
+  assert.deepEqual(manifest.countries, ['US']);
+  assert.ok(isAtLeast(minGladysVersion(), [5, 3, 0]), 'countries needs Gladys 5.3.0');
+});

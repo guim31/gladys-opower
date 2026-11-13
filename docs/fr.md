@@ -68,7 +68,7 @@ connexion.
 
 ## Prérequis
 
-- Gladys 5.2.0 ou plus récent.
+- Gladys 5.3.0 ou plus récent.
 - Un compte en ligne chez votre fournisseur (celui de son site), avec un
   compteur communicant pour l'électricité heure par heure. Sans compteur
   communicant, le fournisseur ne sert que des chiffres journaliers ou
